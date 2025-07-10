@@ -13,10 +13,10 @@ class SilkApiData(ApiData):
         self._registers = registers
     
     def current_flow(self) -> int:
-        return self.get_register(CURRENT_FLOW_RATE)
+        return self.get_register(CURRENT_FLOW_RATE) * 60 # l/m -> l/h
 
     def total_output(self) -> int:
-        return self.get_register(TOTAL_WATER_SERVED)
+        return self.get_register(TOTAL_WATER_SERVED) * 100
 
     def hardness_in(self):
         return self.get_register(WATER_HARDNESS)
@@ -90,4 +90,4 @@ REGENERATIV_REMAINING = 31 # 31/30 = salt %
 
 DAYS_UNTIL_SERVICE = 34 # next_customer_service
 
-DAILY_WATER_USAGE = 43 # day_output
+DAILY_WATER_USAGE = 42 # day_output

@@ -73,6 +73,7 @@ class CurrentFlowSensor(BwtEntity, SensorEntity):
 
     _attr_native_unit_of_measurement = UnitOfVolumeFlowRate.CUBIC_METERS_PER_HOUR
     _attr_state_class = SensorStateClass.MEASUREMENT
+    _attr_device_class = SensorDeviceClass.VOLUME_FLOW_RATE
     _attr_icon = _FAUCET
     suggested_display_precision = 3
 
