@@ -89,7 +89,7 @@
                 "name": "Holiday mode active"
             },
             "next_customer_service": {
-                "name": "Next customer service"
+                "name": "Service agreement end date"
             },
             "days_in_service": {
                 "name": "Days in service"

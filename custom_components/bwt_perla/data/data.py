@@ -21,7 +21,4 @@ class ApiData(ABC):
     def capacity_1(self) -> int: pass
 
     @abstractmethod
-    def last_regeneration_1(self) -> datetime: pass
-
-    @abstractmethod
     def regeneration_count_1(self) -> int: pass

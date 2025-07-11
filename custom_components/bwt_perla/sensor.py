@@ -106,15 +106,6 @@ async def async_setup_entry(
             UnitOfVolume.LITERS,
             _GLASS,
         ),
-        DeviceClassSensor(
-            coordinator,
-            device_info,
-            config_entry.entry_id,
-            "last_regeneration_1",
-            lambda data: data.last_regeneration_1(),
-            SensorDeviceClass.TIMESTAMP,
-            _TIME,
-        ),
         SimpleSensor(
             coordinator,
             device_info,
@@ -230,6 +221,15 @@ async def async_setup_entry(
                 coordinator,
                 device_info,
                 config_entry.entry_id,
+                "last_regeneration_1",
+                lambda data: data.last_regeneration_1(),
+                SensorDeviceClass.TIMESTAMP,
+                _TIME,
+            ))
+            entities.append(DeviceClassSensor(
+                coordinator,
+                device_info,
+                config_entry.entry_id,
                 "last_regeneration_2",
                 lambda data: data.last_regeneration_2(),
                 SensorDeviceClass.TIMESTAMP,
@@ -271,9 +271,9 @@ async def async_setup_entry(
                 coordinator,
                 device_info,
                 config_entry.entry_id,
-                "warranty_days_remaining",
-                lambda data: data.warranty_days_remaining(),
-                _COUNTER,
+                "warranty_end",
+                lambda data: data.warranty_end(),
+                _WRENCH_PERSON,
             )
         )
         for index in [0, 1, 5, 6, 9, 12, 20, 21, 22, 24, 29, 32, 33, 35, 36, 37, 38, 39, 40, 41, 42, 44, 45, 46, 47]:

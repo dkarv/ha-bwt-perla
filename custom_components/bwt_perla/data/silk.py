@@ -34,22 +34,12 @@ class SilkApiData(ApiData):
     def capacity_1(self) -> int:
         return self.get_register(REMAINING_CAPACITY)
     
-    def last_regeneration_1(self) -> datetime:
-        hour = self.get_register(LAST_REGENERATION_HOUR)
-        minute = self.get_register(LAST_REGENERATION_MINUTE)
-        now = datetime.now().astimezone()
-        if hour < now.hour or (hour == now.hour and minute <= now.minute):
-            # today
-            return now.replace(hour=hour, minute=minute, second=0, microsecond=0)
-        
-        # yesterday
-        return now.replace(hour=hour, minute=minute, second=0, microsecond=0) - timedelta(days=1)
-    
     def days_in_service(self) -> int:
         return self.get_register(DAYS_IN_SERVICE)
     
-    def warranty_days_remaining(self) -> int:
-        return self.get_register(WARRANTY_DAYS_REMAINING)
+    def warranty_end(self) -> datetime:
+        warranty_days = self.get_register(WARRANTY_DAYS_REMAINING)
+        return (datetime.now().astimezone() + timedelta(days=warranty_days)).replace(hour = 0, minute = 0, second = 0, microsecond = 0)
     
     def regeneration_count_1(self) -> int:
         return self.get_register(TOTAL_NUMBER_OF_RECHARGES)

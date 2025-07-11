@@ -89,7 +89,7 @@
                 "name": "Urlaubsmodus aktiv"
             },
             "next_customer_service": {
-                "name": "Nächster Servicetermin"
+                "name": "Servicevereinbarung Enddatum"
             },
             "days_in_service": {
                 "name": "Tage seit Inbetriebnahme"
