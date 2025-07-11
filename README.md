@@ -6,15 +6,21 @@ _BWT Perla integration repository for [HACS](https://github.com/custom-component
 -->
 ### Requirements
 
+*BWT Perla One* or *BWT Perla Duplex*:
 * Firmware with at least version 2.02xx [(more info)](#how-can-i-get-the-firmware-update)
 * Local API enabled in Settings > General > Connection
 * "Login-Code" sent to you by mail during registration [(more info)](#where-do-i-get-the-login-code)
 * local network connection (you need the ip address during setup)
 
+UK *BWT Perla Silk*:
+* local network connection (you need the ip address during setup)
+
 ### Installation
 
-* Install BWT Perla in HACS
-* Setup integration and enter host / ip address and the "Login-Code"
+* Search and install BWT Perla in HACS
+* Setup integration
+* Enter host / ip address
+* For *Perla One/Duplex* enter the "Login-Code" in the second step
 * Optional: set entity _bwt total output_ as water source in the energy dashboard
 
 ### Entities
@@ -42,9 +48,9 @@ _BWT Perla integration repository for [HACS](https://github.com/custom-component
 
 #### How can I get the firmware update?
 
-The firmware 2.02xx is currently rolling out to all devices. If your device does not have it yet, it can be requested through the customer service by mail and will be remotely installed on your device.
+This is only relevant for *Perla One* and *Perla Duplex* devices. *Silk* devices in the UK do have different firmware versions. With the latest update, they are also supported with a limited set of entities.
 
-It looks like the customer service does not do the update on devices in the UK - it is still unclear why and what other countries are affected.
+The firmware 2.02xx is currently rolling out to all devices. If your device does not have it yet, it can be requested through the customer service by mail and will be remotely installed on your device.
 
 For more details and recent news, check out the discussion in the [HomeAssistant forum](https://community.home-assistant.io/t/bwt-best-water-tech-nology-support/270745/9999).
 
