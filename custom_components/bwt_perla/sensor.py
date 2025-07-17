@@ -105,6 +105,7 @@ async def async_setup_entry(
             lambda data: data.capacity_1(),
             UnitOfVolume.LITERS,
             _GLASS,
+            0,
         ),
         SimpleSensor(
             coordinator,
@@ -207,6 +208,15 @@ async def async_setup_entry(
                 _WRENCH_CLOCK,
             )
         )
+        entities.append(DeviceClassSensor(
+            coordinator,
+            device_info,
+            config_entry.entry_id,
+            "last_regeneration_1",
+            lambda data: data.last_regeneration_1(),
+            SensorDeviceClass.TIMESTAMP,
+            _TIME,
+        ))
         if coordinator.data.columns() == 2:
             entities.append(UnitSensor(
                 coordinator,
@@ -216,15 +226,7 @@ async def async_setup_entry(
                 lambda data: data.capacity_2(),
                 UnitOfVolume.LITERS,
                 _GLASS,
-            ))
-            entities.append(DeviceClassSensor(
-                coordinator,
-                device_info,
-                config_entry.entry_id,
-                "last_regeneration_1",
-                lambda data: data.last_regeneration_1(),
-                SensorDeviceClass.TIMESTAMP,
-                _TIME,
+                0,
             ))
             entities.append(DeviceClassSensor(
                 coordinator,

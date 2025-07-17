@@ -60,6 +60,7 @@ class TotalOutputSensor(BwtEntity, SensorEntity):
         """Initialize the sensor with the common coordinator."""
         super().__init__(coordinator, device_info, entry_id, "total_output")
         self._attr_native_value = coordinator.data.total_output()
+        self._attr_suggested_display_precision = 0
 
     @callback
     def _handle_coordinator_update(self) -> None:
@@ -75,12 +76,12 @@ class CurrentFlowSensor(BwtEntity, SensorEntity):
     _attr_state_class = SensorStateClass.MEASUREMENT
     _attr_device_class = SensorDeviceClass.VOLUME_FLOW_RATE
     _attr_icon = _FAUCET
-    suggested_display_precision = 3
 
     def __init__(self, coordinator, device_info, entry_id) -> None:
         """Initialize the sensor with the common coordinator."""
         super().__init__(coordinator, device_info, entry_id, "current_flow")
         self._attr_native_value = coordinator.data.current_flow() / 1000.0
+        self._attr_suggested_display_precision = 3
 
     @callback
     def _handle_coordinator_update(self) -> None:
@@ -183,11 +184,13 @@ class UnitSensor(SimpleSensor):
         extract,
         unit: str,
         icon: str,
+        display_precision: int | None = None,
     ) -> None:
         """Initialize the sensor."""
         super().__init__(coordinator, device_info, entry_id, key, extract, icon)
         self._attr_native_unit_of_measurement = unit
         self._attr_state_class = SensorStateClass.MEASUREMENT
+        self._attr_suggested_display_precision = display_precision
 
 
 class StateSensor(BwtEntity, SensorEntity):
