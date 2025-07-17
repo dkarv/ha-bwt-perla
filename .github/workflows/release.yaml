@@ -17,6 +17,7 @@ jobs:
         run: |
           VERSION=$(jq -r '.version' custom_components/bwt_perla/manifest.json)
           echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Version: $VERSION"
 
 
       - name: Check if tag exists
@@ -27,14 +28,6 @@ jobs:
           else
             echo "exists=false" >> $GITHUB_OUTPUT
           fi
-
-      - name: Create Tag
-        if: steps.check_tag.outputs.exists == 'false'
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git tag "v${{ steps.manifest.outputs.version }}"
-          git push origin "v${{ steps.manifest.outputs.version }}"
 
       - name: Create GitHub Release
         if: steps.check_tag.outputs.exists == 'false'
