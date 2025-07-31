@@ -113,7 +113,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 errors["base"] = "cannot_connect"
             except WrongCodeException:
                 _LOGGER.exception("Wrong user code passed to bwt api")
-                errors["base"] = "invalid_auth"
+                errors["base"] = "invalid_code_or_api_disabled"
             except Exception:  # pylint: disable=broad-except
                 _LOGGER.exception("Unexpected exception")
                 errors["base"] = "unknown"
@@ -138,7 +138,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 errors["base"] = "cannot_connect"
             except WrongCodeException:
                 _LOGGER.exception("Wrong user code passed to bwt api")
-                errors["base"] = "invalid_auth"
+                errors["base"] = "invalid_code_or_api_disabled"
             except Exception:  # pylint: disable=broad-except
                 _LOGGER.exception("Unexpected exception")
                 errors["base"] = "unknown"
