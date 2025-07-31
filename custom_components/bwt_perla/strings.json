@@ -10,7 +10,6 @@
         },
         "error": {
             "cannot_connect": "[%key:common::config_flow::error::cannot_connect%]",
-            "invalid_auth": "[%key:common::config_flow::error::invalid_auth%]",
             "invalid_code_or_api_disabled": "Invalid code or local API not enabled. Please check: 1) Device firmware is version 2.02xx or later, 2) Local API is enabled in device Settings > General > Connection, 3) Login code is correct (sent via email during registration)",
             "unknown": "[%key:common::config_flow::error::unknown%]"
         },
