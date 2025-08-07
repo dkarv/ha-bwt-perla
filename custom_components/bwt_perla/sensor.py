@@ -1,6 +1,4 @@
 """BWT Sensors."""
-import logging
-
 from bwt_api.api import BwtApi
 from bwt_api.bwt import BwtModel
 from bwt_api.exception import WrongCodeException
