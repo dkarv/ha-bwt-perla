@@ -96,6 +96,9 @@
             },
             "warranty_days_remaining": {
                 "name": "Garantietage verbleibend"
+            },
+            "dosing_total": {
+                "name": "Verbrauchte Menge Dosiermittel seit Inbetriebnahme"
             }
         }
     }

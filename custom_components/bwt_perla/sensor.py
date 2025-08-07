@@ -1,5 +1,4 @@
 """BWT Sensors."""
-
 from bwt_api.api import BwtApi
 from bwt_api.bwt import BwtModel
 from bwt_api.exception import WrongCodeException
@@ -35,6 +34,7 @@ _TIME = "mdi:calendar-clock"
 _DAY = "mdi:calendar-today"
 _MONTH = "mdi:calendar-month"
 _YEAR = "mdi:calendar-blank-multiple"
+_OIL_LEVEL = "mdi:oil-level"
 
 
 async def async_setup_entry(
@@ -245,6 +245,19 @@ async def async_setup_entry(
                 lambda data: data.regeneration_count_2(),
                 _COUNTER,
             ))
+
+        if coordinator.data.dosing_total() > 0:
+            entities.append(
+                UnitSensor(
+                    coordinator,
+                    device_info,
+                    config_entry.entry_id,
+                    "dosing_total",
+                    lambda data: data.dosing_total(),
+                    UnitOfVolume.MILLILITERS,
+                    _OIL_LEVEL,
+                )
+            )
 
     elif model == BwtModel.PERLA_SILK:
         entities.append(
