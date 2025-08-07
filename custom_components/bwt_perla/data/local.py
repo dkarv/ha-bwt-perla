@@ -83,3 +83,6 @@ class LocalApiData(ApiData):
     
     def regeneration_count_2(self):
         return self._data.regeneration_count_2
+    
+    def dosing_total(self):
+        return self._data.dosing_total
