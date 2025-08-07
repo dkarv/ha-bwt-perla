@@ -36,8 +36,6 @@ _MONTH = "mdi:calendar-month"
 _YEAR = "mdi:calendar-blank-multiple"
 _OIL_LEVEL = "mdi:oil-level"
 
-_LOGGER = logging.getLogger(__name__)
-
 
 async def async_setup_entry(
     hass: HomeAssistant,
