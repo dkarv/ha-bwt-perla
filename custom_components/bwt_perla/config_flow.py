@@ -107,6 +107,13 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             user_input[CONF_HOST] = self._host
             try:
                 info = await validate_input(self.hass, user_input)
+                # If this flow was started as a reconfiguration, update the
+                # existing entry instead of creating a new one.
+                current = self._get_reconfigure_entry()
+                if current is not None:
+                    self.hass.config_entries.async_update_entry(current, data=user_input)
+                    await self.hass.config_entries.async_reload(current.entry_id)
+                    return self.async_abort(reason="reconfiguration_successful")
                 return self.async_create_entry(title=info["title"], data=user_input)
             except ConnectException:
                 _LOGGER.exception("Connection error setting up the Bwt Api")
@@ -129,10 +136,18 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         errors: dict[str, str] = {}
         if user_input is not None:
             try:
-                await validate_input(self.hass, user_input)
-                self.hass.config_entries.async_update_entry(current, data=user_input)
-                await self.hass.config_entries.async_reload(current.entry_id)
-                return self.async_abort(reason="reconfiguration_successful")
+                info = await validate_input(self.hass, user_input)
+                match info["model"]:
+                    case BwtModel.PERLA_LOCAL_API:
+                        # Need to ask for login code during reconfigure
+                        self._host = user_input[CONF_HOST]
+                        return await self.async_step_code()
+                    case BwtModel.PERLA_SILK:
+                        self.hass.config_entries.async_update_entry(current, data=user_input)
+                        await self.hass.config_entries.async_reload(current.entry_id)
+                        return self.async_abort(reason="reconfiguration_successful")
+                    case _:
+                        errors["base"] = "unsupported_model"
             except ConnectException:
                 _LOGGER.exception("Connection error setting up the Bwt Api")
                 errors["base"] = "cannot_connect"

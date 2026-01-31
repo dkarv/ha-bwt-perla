@@ -28,7 +28,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         else:
             api = BwtSilkApi(entry.data["host"])
             await api.get_registers()
-    except BwtException as e:
+    except Exception as e:
         _LOGGER.exception("Error setting up Bwt API")
         await api.close()
         raise ConfigEntryNotReady from e

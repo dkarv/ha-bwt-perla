@@ -44,8 +44,7 @@ async def async_setup_entry(
 ) -> None:
     """Set up bwt sensors from config entry."""
     my_api = hass.data[DOMAIN][config_entry.entry_id]
-    model = BwtModel.PERLA_LOCAL_API if isinstance(
-        my_api, BwtApi) else BwtModel.PERLA_SILK
+    model = BwtModel.PERLA_LOCAL_API if isinstance(my_api, BwtApi) else BwtModel.PERLA_SILK
     coordinator = BwtCoordinator(hass, my_api, model)
 
     try:
