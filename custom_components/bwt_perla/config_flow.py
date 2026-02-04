@@ -109,8 +109,8 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 info = await validate_input(self.hass, user_input)
                 # If this flow was started as a reconfiguration, update the
                 # existing entry instead of creating a new one.
-                current = self._get_reconfigure_entry()
-                if current is not None:
+                if self.source == "reconfigure":
+                    current = self._get_reconfigure_entry()
                     self.hass.config_entries.async_update_entry(current, data=user_input)
                     await self.hass.config_entries.async_reload(current.entry_id)
                     return self.async_abort(reason="reconfiguration_successful")
