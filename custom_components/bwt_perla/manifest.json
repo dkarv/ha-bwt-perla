@@ -4,7 +4,7 @@
   "codeowners": ["@dkarv"],
   "config_flow": true,
   "dependencies": [],
-  "documentation": "https://github.com/dkarv/ha-bwt-perla/blob/master/README.md",
+  "documentation": "https://github.com/dkarv/ha-bwt-perla/blob/main/README.md",
   "homekit": {},
   "integration_type": "device",
   "iot_class": "local_polling",
