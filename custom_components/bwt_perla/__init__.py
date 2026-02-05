@@ -10,6 +10,7 @@ from homeassistant.const import Platform, CONF_CODE, CONF_HOST
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.exceptions import ConfigEntryNotReady
 from homeassistant.helpers.entity_registry import async_migrate_entries
+from homeassistant.helpers import entity_registry as er
 
 from .const import DOMAIN
 
@@ -62,7 +63,34 @@ async def async_migrate_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             return {"new_unique_id": entry.entry_id + "_" + entity_entry.unique_id}
 
         await async_migrate_entries(hass, entry.entry_id, update_unique_id)
-        entry.version = 2
+        hass.config_entries.async_update_entry(entry, version=3)
+
+    # Fix entity ids
+    if entry.version == 2:
+        # Remove dollar signs from entity IDs for entities created by this config entry
+        registry = er.async_get(hass)
+
+        for entity in list(registry.entities.values()):
+            # Only operate on entities that belong to this config entry
+            if entity.config_entry_id != entry.entry_id:
+                continue
+
+            if "$" not in entity.entity_id:
+                continue
+
+            new_entity_id = entity.entity_id.replace("$", "")
+            try:
+                registry.async_update_entity(entity.entity_id, new_entity_id=new_entity_id)
+                _LOGGER.info("Renamed entity %s -> %s", entity.entity_id, new_entity_id)
+            except ValueError as exc:
+                _LOGGER.warning(
+                    "Could not rename entity %s -> %s: %s",
+                    entity.entity_id,
+                    new_entity_id,
+                    exc,
+                )
+        
+        hass.config_entries.async_update_entry(entry, version=3)
 
     _LOGGER.info("Migration to version %s successful", entry.version)
 
