@@ -63,7 +63,7 @@ async def async_migrate_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             return {"new_unique_id": entry.entry_id + "_" + entity_entry.unique_id}
 
         await async_migrate_entries(hass, entry.entry_id, update_unique_id)
-        hass.config_entries.async_update_entry(entry, version=3)
+        hass.config_entries.async_update_entry(entry, version=2)
 
     # Fix entity ids
     if entry.version == 2:
