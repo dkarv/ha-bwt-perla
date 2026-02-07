@@ -1,7 +1,33 @@
-// For format details, see https://aka.ms/devcontainer.json. For config options, see the
-// README at: https://github.com/devcontainers/templates/tree/main/src/python
 {
-	"name": "Python 3",
-	"image": "mcr.microsoft.com/devcontainers/python:1-3.13-bullseye",
-	"postCreateCommand": "pip install -r requirements.txt"
+	"name": "dkarv-devcontainer",
+	"build": {
+		"dockerfile": "../dev/Dockerfile"
+	},
+	"runArgs": [
+		"--name",
+		"dkarv-devcontainer"
+	],
+	"appPort": [
+		8123
+	],
+	"postCreateCommand": "/workspaces/ha-lg-ess/dev/bootstrap.sh",
+	"overrideCommand": false,
+	"mounts": [
+		"source=${localWorkspaceFolder}/dev/.config,target=/config,type=bind,consistency=cached",
+		"source=${localWorkspaceFolder}/dev/configuration.yaml,target=/config/configuration.yaml,type=bind,consistency=cached",
+		"source=${localWorkspaceFolder}/custom_components,target=/config/custom_components,type=bind,consistency=cached"
+	],
+	"features": {
+		//"ghcr.io/devcontainers/features/python:1": "none"
+	},
+	"customizations": {
+    "vscode": {
+      "extensions": [
+        "charliermarsh.ruff",
+        "ms-python.pylint",
+        "ms-python.vscode-pylance",
+		"github.copilot-chat"
+	  ]
+	}
+}
 }
