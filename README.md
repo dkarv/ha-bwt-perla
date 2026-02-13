@@ -28,7 +28,7 @@ UK *BWT Perla Silk*:
 | Entity Id(s) | Information |
 | ------------- | ------------- |
 | total_output | Increasing value of the blended water = the total water consumed. Use this as water source on the energy dashboard. |
-| errors, warnings | The fatal errors and non-fatal warnings. Comma separated list or empty if no value present. [List of values](https://github.com/dkarv/bwt_api/blob/main/src/bwt_api/error.py). |
+| errors, warnings | The fatal errors and non-fatal warnings. Displays a comma-separated list of translated error/warning messages in your language (English and German supported). Raw error codes are available in the entity attributes (`error_codes` or `warning_codes`) for use in automations. Empty if no errors/warnings present. [List of error codes](https://github.com/dkarv/bwt_api/blob/main/src/bwt_api/error.py). |
 | state | State of the device. Can be OK, WARNING, ERROR |
 | holiday_mode | If the holiday mode is active (true) or not (false) |
 | holiday_mode_start | Undefined or a timestamp if the holiday mode is set to start in the future |
@@ -45,6 +45,27 @@ UK *BWT Perla Silk*:
 
 
 ### FAQ
+
+#### How do I use error and warning codes in automations?
+
+Error and warning entities display translated, human-readable messages. For automations, you can access the raw error codes through entity attributes:
+
+```yaml
+automation:
+  - alias: "Alert on specific BWT error"
+    trigger:
+      - platform: state
+        entity_id: sensor.bwt_perla_errors
+    condition:
+      - condition: template
+        value_template: "{{ 'OFFLINE_MOTOR_1' in state_attr('sensor.bwt_perla_errors', 'error_codes') }}"
+    action:
+      - service: notify.mobile_app
+        data:
+          message: "BWT Perla: Motor 1 is offline!"
+```
+
+Similarly for warnings, use `state_attr('sensor.bwt_perla_warnings', 'warning_codes')`.
 
 #### How can I get the firmware update?
 
