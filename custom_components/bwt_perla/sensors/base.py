@@ -47,15 +47,32 @@ class BwtEntity(CoordinatorEntity[BwtCoordinator]):
         self._attr_has_entity_name = True
         self.entity_id = f"sensor.{DOMAIN}_{key}"
         self._attr_unique_id = entry_id + "_" + key
-        self._translations = None
 
-    def _translate_error(self, error_name: str) -> str:
-        """Translate an error code to the user's language."""
+
+class TranslatableErrorMixin:
+    """Mixin for entities that need to translate error codes."""
+
+    _translations = None
+
+    async def async_added_to_hass(self) -> None:
+        """When entity is added to hass, load translations."""
+        await super().async_added_to_hass()
+        # Load translations for the current language
+        self._translations = await translation.async_get_translations(
+            self.hass,
+            self.hass.config.language,
+            "entity_component",
+            {DOMAIN},
+        )
+
+    def _translate_code(self, code_name: str) -> str:
+        """Translate an error/warning code to the user's language."""
         if self._translations is None:
-            return error_name
+            return code_name
 
-        key = f"component.{DOMAIN}.entity_component._.state.error.{error_name.lower()}"
-        return self._translations.get(key, error_name)
+        key = f"component.{DOMAIN}.entity_component._.state.error.{code_name.lower()}"
+        return self._translations.get(key, code_name)
+
 
 
 class TotalOutputSensor(BwtEntity, SensorEntity):
@@ -101,7 +118,7 @@ class CurrentFlowSensor(BwtEntity, SensorEntity):
         self.async_write_ha_state()
 
 
-class ErrorSensor(BwtEntity, SensorEntity):
+class ErrorSensor(TranslatableErrorMixin, BwtEntity, SensorEntity):
     """Errors reported by the device."""
 
     _attr_icon = _ERROR
@@ -115,13 +132,6 @@ class ErrorSensor(BwtEntity, SensorEntity):
     async def async_added_to_hass(self) -> None:
         """When entity is added to hass, load translations."""
         await super().async_added_to_hass()
-        # Load translations for the current language
-        self._translations = await translation.async_get_translations(
-            self.hass,
-            self.hass.config.language,
-            "entity_component",
-            {DOMAIN},
-        )
         # Update values with translations now that they're loaded
         errors = [x for x in self.coordinator.data.errors() if x.is_fatal()]
         self._update_values(errors)
@@ -135,7 +145,7 @@ class ErrorSensor(BwtEntity, SensorEntity):
 
         # Translate error names for display
         if errors:
-            translated = [self._translate_error(x.name) for x in errors]
+            translated = [self._translate_code(x.name) for x in errors]
             self._attr_native_value = ", ".join(translated)
         else:
             self._attr_native_value = ""
@@ -148,7 +158,7 @@ class ErrorSensor(BwtEntity, SensorEntity):
         self.async_write_ha_state()
 
 
-class WarningSensor(BwtEntity, SensorEntity):
+class WarningSensor(TranslatableErrorMixin, BwtEntity, SensorEntity):
     """Warnings reported by the device."""
 
     _attr_icon = _WARNING
@@ -162,13 +172,6 @@ class WarningSensor(BwtEntity, SensorEntity):
     async def async_added_to_hass(self) -> None:
         """When entity is added to hass, load translations."""
         await super().async_added_to_hass()
-        # Load translations for the current language
-        self._translations = await translation.async_get_translations(
-            self.hass,
-            self.hass.config.language,
-            "entity_component",
-            {DOMAIN},
-        )
         # Update values with translations now that they're loaded
         warnings = [x for x in self.coordinator.data.errors() if not x.is_fatal()]
         self._update_values(warnings)
@@ -182,7 +185,7 @@ class WarningSensor(BwtEntity, SensorEntity):
 
         # Translate warning names for display
         if warnings:
-            translated = [self._translate_error(x.name) for x in warnings]
+            translated = [self._translate_code(x.name) for x in warnings]
             self._attr_native_value = ", ".join(translated)
         else:
             self._attr_native_value = ""
