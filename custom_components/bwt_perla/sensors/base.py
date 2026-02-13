@@ -50,7 +50,16 @@ class BwtEntity(CoordinatorEntity[BwtCoordinator]):
 
 
 class TranslatableErrorMixin:
-    """Mixin for entities that need to translate error codes."""
+    """Mixin for entities that need to translate error codes.
+
+    This mixin provides translation functionality for entities that display
+    multiple error/warning codes. It loads translations when the entity is
+    added to Home Assistant and provides a method to translate individual codes.
+
+    Attributes:
+        _translations: Dictionary of translations loaded from language files.
+                      Initialized as None and populated in async_added_to_hass.
+    """
 
     _translations = None
 
