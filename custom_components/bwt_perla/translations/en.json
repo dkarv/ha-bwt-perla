@@ -101,5 +101,57 @@
                 "name": "Total dosing means used"
             }
         }
+    },
+    "entity_component": {
+        "_": {
+            "state": {
+                "error": {
+                    "unknown": "Unknown error",
+                    "offline_motor_1": "Motor 1 offline",
+                    "offline_motor_2": "Motor 2 offline",
+                    "offline_motor_blend": "Blend motor offline",
+                    "regenerativ_20": "Regeneration salt level at 20%",
+                    "overcurrent_motor_1": "Overcurrent motor 1",
+                    "overcurrent_motor_2": "Overcurrent motor 2",
+                    "overcurrent_motor_3": "Overcurrent motor 3",
+                    "overcurrent_valve": "Overcurrent valve",
+                    "stop_volume": "Stop volume",
+                    "stop_sensor": "Stop sensor",
+                    "constant_flow": "Constant flow",
+                    "low_pressure": "Low pressure",
+                    "piston_position": "Piston position error",
+                    "electronic": "Electronic error",
+                    "insufficient_regenerativ": "Insufficient regeneration salt",
+                    "stop_wireless_sensor": "Stop wireless sensor",
+                    "regenerativ_0": "Regeneration salt empty",
+                    "maintenance_customer": "Customer maintenance required",
+                    "inspection_customer": "Customer inspection required",
+                    "maintenance_service": "Service maintenance required",
+                    "minerals_low": "Minerals low",
+                    "minerals_0": "Minerals empty",
+                    "overcurrent_valve_1": "Overcurrent valve 1",
+                    "overcurrent_valve_2": "Overcurrent valve 2",
+                    "overcurrent_dosing": "Overcurrent dosing",
+                    "overcurrent_valve_ball": "Overcurrent ball valve",
+                    "meter_not_counting": "Water meter not counting",
+                    "regeneration_drain": "Regeneration drain issue",
+                    "init_pcb_0": "PCB initialization error 0",
+                    "init_pcb_1": "PCB initialization error 1",
+                    "position_motor_1": "Motor 1 position error",
+                    "position_motor_2": "Motor 2 position error",
+                    "conductivity_high": "Conductivity too high",
+                    "conductivity_limit_1": "Conductivity limit 1 exceeded",
+                    "conductivity_limit_2": "Conductivity limit 2 exceeded",
+                    "conductivity_limit_water": "Water conductivity limit exceeded",
+                    "no_function": "No function",
+                    "temperature_disconnected": "Temperature sensor disconnected",
+                    "temperature_high": "Temperature too high",
+                    "offline_valve_ball": "Ball valve offline",
+                    "external_filter_change": "External filter change required",
+                    "brine_unsaturated": "Brine unsaturated",
+                    "dosing_fault": "Dosing fault"
+                }
+            }
+        }
     }
 }

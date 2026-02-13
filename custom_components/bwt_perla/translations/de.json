@@ -101,5 +101,57 @@
                 "name": "Verbrauchte Menge Dosiermittel seit Inbetriebnahme"
             }
         }
+    },
+    "entity_component": {
+        "_": {
+            "state": {
+                "error": {
+                    "unknown": "Unbekannter Fehler",
+                    "offline_motor_1": "Motor 1 offline",
+                    "offline_motor_2": "Motor 2 offline",
+                    "offline_motor_blend": "Mischmotor offline",
+                    "regenerativ_20": "Regeneriersalz-Stand bei 20%",
+                    "overcurrent_motor_1": "Überstrom Motor 1",
+                    "overcurrent_motor_2": "Überstrom Motor 2",
+                    "overcurrent_motor_3": "Überstrom Motor 3",
+                    "overcurrent_valve": "Überstrom Ventil",
+                    "stop_volume": "Volumen-Stopp",
+                    "stop_sensor": "Sensor-Stopp",
+                    "constant_flow": "Konstanter Durchfluss",
+                    "low_pressure": "Niedriger Druck",
+                    "piston_position": "Kolbenpositionsfehler",
+                    "electronic": "Elektronikfehler",
+                    "insufficient_regenerativ": "Unzureichendes Regeneriersalz",
+                    "stop_wireless_sensor": "Funk-Sensor-Stopp",
+                    "regenerativ_0": "Regeneriersalz leer",
+                    "maintenance_customer": "Kundenwartung erforderlich",
+                    "inspection_customer": "Kundeninspektion erforderlich",
+                    "maintenance_service": "Servicewartung erforderlich",
+                    "minerals_low": "Mineralien niedrig",
+                    "minerals_0": "Mineralien leer",
+                    "overcurrent_valve_1": "Überstrom Ventil 1",
+                    "overcurrent_valve_2": "Überstrom Ventil 2",
+                    "overcurrent_dosing": "Überstrom Dosierung",
+                    "overcurrent_valve_ball": "Überstrom Kugelventil",
+                    "meter_not_counting": "Wasserzähler zählt nicht",
+                    "regeneration_drain": "Regenerationsabfluss-Problem",
+                    "init_pcb_0": "Leiterplatten-Initialisierungsfehler 0",
+                    "init_pcb_1": "Leiterplatten-Initialisierungsfehler 1",
+                    "position_motor_1": "Positionsfehler Motor 1",
+                    "position_motor_2": "Positionsfehler Motor 2",
+                    "conductivity_high": "Leitfähigkeit zu hoch",
+                    "conductivity_limit_1": "Leitfähigkeitsgrenze 1 überschritten",
+                    "conductivity_limit_2": "Leitfähigkeitsgrenze 2 überschritten",
+                    "conductivity_limit_water": "Wasser-Leitfähigkeitsgrenze überschritten",
+                    "no_function": "Keine Funktion",
+                    "temperature_disconnected": "Temperatursensor getrennt",
+                    "temperature_high": "Temperatur zu hoch",
+                    "offline_valve_ball": "Kugelventil offline",
+                    "external_filter_change": "Externer Filterwechsel erforderlich",
+                    "brine_unsaturated": "Sole ungesättigt",
+                    "dosing_fault": "Dosierfehler"
+                }
+            }
+        }
     }
 }

@@ -17,6 +17,7 @@ from homeassistant.const import (
 from homeassistant.core import callback
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
+from homeassistant.helpers import translation
 
 from ..const import DOMAIN
 from ..coordinator import BwtCoordinator
@@ -99,14 +100,51 @@ class ErrorSensor(BwtEntity, SensorEntity):
     def __init__(self, coordinator, device_info, entry_id) -> None:
         """Initialize the sensor with the common coordinator."""
         super().__init__(coordinator, device_info, entry_id, "errors")
-        values = [x.name for x in self.coordinator.data.errors() if x.is_fatal()]
-        self._attr_native_value = ",".join(values)
+        self._translations = None
+        errors = [x for x in self.coordinator.data.errors() if x.is_fatal()]
+        self._update_values(errors)
+
+    async def async_added_to_hass(self) -> None:
+        """When entity is added to hass, load translations."""
+        await super().async_added_to_hass()
+        # Load translations for the current language
+        self._translations = await translation.async_get_translations(
+            self.hass,
+            self.hass.config.language,
+            "entity_component",
+            {DOMAIN},
+        )
+        # Update values with translations now that they're loaded
+        errors = [x for x in self.coordinator.data.errors() if x.is_fatal()]
+        self._update_values(errors)
+        self.async_write_ha_state()
+
+    def _translate_error(self, error_name: str) -> str:
+        """Translate an error code to the user's language."""
+        if self._translations is None:
+            return error_name
+        
+        key = f"component.{DOMAIN}.entity_component._.state.error.{error_name.lower()}"
+        return self._translations.get(key, error_name)
+
+    def _update_values(self, errors) -> None:
+        """Update error values with translations."""
+        raw_values = [x.name for x in errors]
+        # Store raw values as extra attributes for automation
+        self._attr_extra_state_attributes = {"error_codes": raw_values}
+        
+        # Translate error names for display
+        if errors:
+            translated = [self._translate_error(x.name) for x in errors]
+            self._attr_native_value = ", ".join(translated)
+        else:
+            self._attr_native_value = ""
 
     @callback
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""
-        values = [x.name for x in self.coordinator.data.errors() if x.is_fatal()]
-        self._attr_native_value = ",".join(values)
+        errors = [x for x in self.coordinator.data.errors() if x.is_fatal()]
+        self._update_values(errors)
         self.async_write_ha_state()
 
 
@@ -118,14 +156,51 @@ class WarningSensor(BwtEntity, SensorEntity):
     def __init__(self, coordinator, device_info, entry_id) -> None:
         """Initialize the sensor with the common coordinator."""
         super().__init__(coordinator, device_info, entry_id, "warnings")
-        values = [x.name for x in self.coordinator.data.errors() if not x.is_fatal()]
-        self._attr_native_value = ",".join(values)
+        self._translations = None
+        warnings = [x for x in self.coordinator.data.errors() if not x.is_fatal()]
+        self._update_values(warnings)
+
+    async def async_added_to_hass(self) -> None:
+        """When entity is added to hass, load translations."""
+        await super().async_added_to_hass()
+        # Load translations for the current language
+        self._translations = await translation.async_get_translations(
+            self.hass,
+            self.hass.config.language,
+            "entity_component",
+            {DOMAIN},
+        )
+        # Update values with translations now that they're loaded
+        warnings = [x for x in self.coordinator.data.errors() if not x.is_fatal()]
+        self._update_values(warnings)
+        self.async_write_ha_state()
+
+    def _translate_error(self, error_name: str) -> str:
+        """Translate an error code to the user's language."""
+        if self._translations is None:
+            return error_name
+        
+        key = f"component.{DOMAIN}.entity_component._.state.error.{error_name.lower()}"
+        return self._translations.get(key, error_name)
+
+    def _update_values(self, warnings) -> None:
+        """Update warning values with translations."""
+        raw_values = [x.name for x in warnings]
+        # Store raw values as extra attributes for automation
+        self._attr_extra_state_attributes = {"warning_codes": raw_values}
+        
+        # Translate warning names for display
+        if warnings:
+            translated = [self._translate_error(x.name) for x in warnings]
+            self._attr_native_value = ", ".join(translated)
+        else:
+            self._attr_native_value = ""
 
     @callback
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""
-        values = [x.name for x in self.coordinator.data.errors() if not x.is_fatal()]
-        self._attr_native_value = ",".join(values)
+        warnings = [x for x in self.coordinator.data.errors() if not x.is_fatal()]
+        self._update_values(warnings)
         self.async_write_ha_state()
 
 
