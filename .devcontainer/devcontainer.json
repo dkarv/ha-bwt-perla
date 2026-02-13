@@ -1,25 +1,22 @@
 {
-	"name": "dkarv-devcontainer",
+	"name": "${localWorkspaceFolderBasename}-dev",
 	"build": {
 		"dockerfile": "../dev/Dockerfile"
 	},
 	"runArgs": [
 		"--name",
-		"dkarv-devcontainer"
+		"${localWorkspaceFolderBasename}-dev"
 	],
 	"appPort": [
 		8123
 	],
-	"postCreateCommand": "/workspaces/ha-lg-ess/dev/bootstrap.sh",
+	"postCreateCommand": "dev/bootstrap.sh",
 	"overrideCommand": false,
 	"mounts": [
 		"source=${localWorkspaceFolder}/dev/.config,target=/config,type=bind,consistency=cached",
 		"source=${localWorkspaceFolder}/dev/configuration.yaml,target=/config/configuration.yaml,type=bind,consistency=cached",
 		"source=${localWorkspaceFolder}/custom_components,target=/config/custom_components,type=bind,consistency=cached"
 	],
-	"features": {
-		//"ghcr.io/devcontainers/features/python:1": "none"
-	},
 	"customizations": {
     "vscode": {
       "extensions": [

@@ -44,16 +44,42 @@ trap 'echo "Received termination signal, stopping..."; stop_ha; exit 0' INT TERM
 
 start_ha
 
-inotifywait -m -r -e close_write,modify,create,delete --format '%w%f' "$WATCH_DIR" | while read -r file; do
+# Use a file descriptor reading from inotifywait so we can debounce properly.
+# Behavior: perform an immediate restart on the first event, then collect any
+# additional events that arrive within $DEBOUNCE seconds and perform one
+# additional restart if any were seen. This ensures we never miss updates but
+# do restarts at most every $DEBOUNCE seconds for a burst of changes.
+exec 3< <(inotifywait -m -r -e close_write,modify,create,delete --format '%w%f' "$WATCH_DIR")
+while IFS= read -r -u 3 file; do
 	# ignore changes in Python bytecode caches
 	case "$file" in
-	*/__pycache__/*)
+	*/__pycache__*)
 		continue
 		;;
 	esac
 	echo "Change detected: $file -- restarting Home Assistant"
 	stop_ha
 	start_ha
-	sleep "$DEBOUNCE"
+
+	# Collect further events for up to $DEBOUNCE seconds. If we see any,
+	# perform one additional restart after the quiet period.
+	pending=0
+	last_event="$file"
+	while IFS= read -r -u 3 -t "$DEBOUNCE" next; do
+		case "$next" in
+		*/__pycache__*)
+			continue
+			;;
+		esac
+		echo "Queued change: $next"
+		pending=1
+		last_event="$next"
+	done
+
+	if [ "$pending" -eq 1 ]; then
+		echo "Processing pending change: $last_event -- restarting Home Assistant"
+		stop_ha
+		start_ha
+	fi
 done
 
