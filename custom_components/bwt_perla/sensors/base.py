@@ -47,6 +47,15 @@ class BwtEntity(CoordinatorEntity[BwtCoordinator]):
         self._attr_has_entity_name = True
         self.entity_id = f"sensor.{DOMAIN}_{key}"
         self._attr_unique_id = entry_id + "_" + key
+        self._translations = None
+
+    def _translate_error(self, error_name: str) -> str:
+        """Translate an error code to the user's language."""
+        if self._translations is None:
+            return error_name
+
+        key = f"component.{DOMAIN}.entity_component._.state.error.{error_name.lower()}"
+        return self._translations.get(key, error_name)
 
 
 class TotalOutputSensor(BwtEntity, SensorEntity):
@@ -100,7 +109,6 @@ class ErrorSensor(BwtEntity, SensorEntity):
     def __init__(self, coordinator, device_info, entry_id) -> None:
         """Initialize the sensor with the common coordinator."""
         super().__init__(coordinator, device_info, entry_id, "errors")
-        self._translations = None
         errors = [x for x in self.coordinator.data.errors() if x.is_fatal()]
         self._update_values(errors)
 
@@ -119,20 +127,12 @@ class ErrorSensor(BwtEntity, SensorEntity):
         self._update_values(errors)
         self.async_write_ha_state()
 
-    def _translate_error(self, error_name: str) -> str:
-        """Translate an error code to the user's language."""
-        if self._translations is None:
-            return error_name
-        
-        key = f"component.{DOMAIN}.entity_component._.state.error.{error_name.lower()}"
-        return self._translations.get(key, error_name)
-
     def _update_values(self, errors) -> None:
         """Update error values with translations."""
         raw_values = [x.name for x in errors]
         # Store raw values as extra attributes for automation
         self._attr_extra_state_attributes = {"error_codes": raw_values}
-        
+
         # Translate error names for display
         if errors:
             translated = [self._translate_error(x.name) for x in errors]
@@ -156,7 +156,6 @@ class WarningSensor(BwtEntity, SensorEntity):
     def __init__(self, coordinator, device_info, entry_id) -> None:
         """Initialize the sensor with the common coordinator."""
         super().__init__(coordinator, device_info, entry_id, "warnings")
-        self._translations = None
         warnings = [x for x in self.coordinator.data.errors() if not x.is_fatal()]
         self._update_values(warnings)
 
@@ -175,20 +174,12 @@ class WarningSensor(BwtEntity, SensorEntity):
         self._update_values(warnings)
         self.async_write_ha_state()
 
-    def _translate_error(self, error_name: str) -> str:
-        """Translate an error code to the user's language."""
-        if self._translations is None:
-            return error_name
-        
-        key = f"component.{DOMAIN}.entity_component._.state.error.{error_name.lower()}"
-        return self._translations.get(key, error_name)
-
     def _update_values(self, warnings) -> None:
         """Update warning values with translations."""
         raw_values = [x.name for x in warnings]
         # Store raw values as extra attributes for automation
         self._attr_extra_state_attributes = {"warning_codes": raw_values}
-        
+
         # Translate warning names for display
         if warnings:
             translated = [self._translate_error(x.name) for x in warnings]
