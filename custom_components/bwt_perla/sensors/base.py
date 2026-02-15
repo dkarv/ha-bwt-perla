@@ -36,6 +36,103 @@ _WATER_CHECK = "mdi:water-check"
 _HOLIDAY = "mdi:location-exit"
 _UNKNOWN = "mdi:help-circle"
 
+# Error code translations
+# English translations
+_ERROR_TRANSLATIONS_EN = {
+    "UNKNOWN": "Unknown error",
+    "OFFLINE_MOTOR_1": "Motor 1 offline",
+    "OFFLINE_MOTOR_2": "Motor 2 offline",
+    "OFFLINE_MOTOR_BLEND": "Blend motor offline",
+    "REGENERATIV_20": "Regeneration salt level < 20%",
+    "OVERCURRENT_MOTOR_1": "Overcurrent motor 1",
+    "OVERCURRENT_MOTOR_2": "Overcurrent motor 2",
+    "OVERCURRENT_MOTOR_3": "Overcurrent motor 3",
+    "OVERCURRENT_VALVE": "Overcurrent valve",
+    "STOP_VOLUME": "Stop volume",
+    "STOP_SENSOR": "Stop sensor",
+    "CONSTANT_FLOW": "Constant flow",
+    "LOW_PRESSURE": "Low pressure",
+    "PISTON_POSITION": "Piston position",
+    "ELECTRONIC": "Electronic",
+    "INSUFFICIENT_REGENERATIV": "Insufficient regeneration salt",
+    "STOP_WIRELESS_SENSOR": "Stop wireless sensor",
+    "REGENERATIV_0": "Regeneration salt empty",
+    "MAINTENANCE_CUSTOMER": "Routine maintenance due",
+    "INSPECTION_CUSTOMER": "Customer inspection required",
+    "MAINTENANCE_SERVICE": "Technician maintenance due",
+    "MINERALS_LOW": "Minerals low",
+    "MINERALS_0": "Minerals empty",
+    "OVERCURRENT_VALVE_1": "Overcurrent valve 1",
+    "OVERCURRENT_VALVE_2": "Overcurrent valve 2",
+    "OVERCURRENT_DOSING": "Overcurrent dosing",
+    "OVERCURRENT_VALVE_BALL": "Overcurrent ball valve",
+    "METER_NOT_COUNTING": "Water meter not counting",
+    "REGENERATION_DRAIN": "Regeneration drain issue",
+    "INIT_PCB_0": "PCB initialization 0",
+    "INIT_PCB_1": "PCB initialization 1",
+    "POSITION_MOTOR_1": "Motor 1 position",
+    "POSITION_MOTOR_2": "Motor 2 position",
+    "CONDUCTIVITY_HIGH": "Conductivity too high",
+    "CONDUCTIVITY_LIMIT_1": "Conductivity limit 1 exceeded",
+    "CONDUCTIVITY_LIMIT_2": "Conductivity limit 2 exceeded",
+    "CONDUCTIVITY_LIMIT_WATER": "Water conductivity limit exceeded",
+    "NO_FUNCTION": "No function",
+    "TEMPERATURE_DISCONNECTED": "Temperature sensor disconnected",
+    "TEMPERATURE_HIGH": "Temperature too high",
+    "OFFLINE_VALVE_BALL": "Ball valve offline",
+    "EXTERNAL_FILTER_CHANGE": "External filter change required",
+    "BRINE_UNSATURATED": "Brine unsaturated",
+    "DOSING_FAULT": "Dosing fault",
+}
+
+# German translations
+_ERROR_TRANSLATIONS_DE = {
+    "UNKNOWN": "Unbekannter Fehler",
+    "OFFLINE_MOTOR_1": "Motor 1 offline",
+    "OFFLINE_MOTOR_2": "Motor 2 offline",
+    "OFFLINE_MOTOR_BLEND": "Mischmotor offline",
+    "REGENERATIV_20": "Regeneriersalz-Stand < 20%",
+    "OVERCURRENT_MOTOR_1": "Überstrom Motor 1",
+    "OVERCURRENT_MOTOR_2": "Überstrom Motor 2",
+    "OVERCURRENT_MOTOR_3": "Überstrom Motor 3",
+    "OVERCURRENT_VALVE": "Überstrom Ventil",
+    "STOP_VOLUME": "Volumen-Stopp",
+    "STOP_SENSOR": "Sensor-Stopp",
+    "CONSTANT_FLOW": "Konstanter Durchfluss",
+    "LOW_PRESSURE": "Niedriger Druck",
+    "PISTON_POSITION": "Kolbenposition",
+    "ELECTRONIC": "Elektronik",
+    "INSUFFICIENT_REGENERATIV": "Unzureichendes Regeneriersalz",
+    "STOP_WIRELESS_SENSOR": "Funk-Sensor-Stopp",
+    "REGENERATIV_0": "Regeneriersalz leer",
+    "MAINTENANCE_CUSTOMER": "Planmäßige Wartung fällig",
+    "INSPECTION_CUSTOMER": "Kundeninspektion erforderlich",
+    "MAINTENANCE_SERVICE": "Technikerwartung fällig",
+    "MINERALS_LOW": "Mineralien niedrig",
+    "MINERALS_0": "Mineralien leer",
+    "OVERCURRENT_VALVE_1": "Überstrom Ventil 1",
+    "OVERCURRENT_VALVE_2": "Überstrom Ventil 2",
+    "OVERCURRENT_DOSING": "Überstrom Dosierung",
+    "OVERCURRENT_VALVE_BALL": "Überstrom Kugelventil",
+    "METER_NOT_COUNTING": "Wasserzähler zählt nicht",
+    "REGENERATION_DRAIN": "Regenerationsabfluss-Problem",
+    "INIT_PCB_0": "Leiterplatten-Initialisierung 0",
+    "INIT_PCB_1": "Leiterplatten-Initialisierung 1",
+    "POSITION_MOTOR_1": "Position Motor 1",
+    "POSITION_MOTOR_2": "Position Motor 2",
+    "CONDUCTIVITY_HIGH": "Leitfähigkeit zu hoch",
+    "CONDUCTIVITY_LIMIT_1": "Leitfähigkeitsgrenze 1 überschritten",
+    "CONDUCTIVITY_LIMIT_2": "Leitfähigkeitsgrenze 2 überschritten",
+    "CONDUCTIVITY_LIMIT_WATER": "Wasser-Leitfähigkeitsgrenze überschritten",
+    "NO_FUNCTION": "Keine Funktion",
+    "TEMPERATURE_DISCONNECTED": "Temperatursensor getrennt",
+    "TEMPERATURE_HIGH": "Temperatur zu hoch",
+    "OFFLINE_VALVE_BALL": "Kugelventil offline",
+    "EXTERNAL_FILTER_CHANGE": "Externer Filterwechsel erforderlich",
+    "BRINE_UNSATURATED": "Sole ungesättigt",
+    "DOSING_FAULT": "Dosierfehler",
+}
+
 class BwtEntity(CoordinatorEntity[BwtCoordinator]):
     """General bwt entity with common properties."""
 
@@ -59,34 +156,22 @@ class TranslatableErrorMixin:
     """Mixin for entities that need to translate error codes.
 
     This mixin provides translation functionality for entities that display
-    multiple error/warning codes. It loads translations when the entity is
-    added to Home Assistant and provides a method to translate individual codes.
-
-    Attributes:
-        _translations: Dictionary of translations loaded from language files.
-                      Initialized as None and populated in async_added_to_hass.
+    multiple error/warning codes using hardcoded translation dictionaries.
     """
-
-    _translations = None
-
-    async def async_added_to_hass(self) -> None:
-        """When entity is added to hass, load translations."""
-        await super().async_added_to_hass()
-        # Load translations for the current language
-        self._translations = await translation.async_get_translations(
-            self.hass,
-            self.hass.config.language,
-            "entity_component",
-            {DOMAIN},
-        )
 
     def _translate_code(self, code_name: str) -> str:
         """Translate an error/warning code to the user's language."""
-        if self._translations is None:
-            return code_name
-
-        key = f"component.{DOMAIN}.entity_component._.state.error.{code_name.lower()}"
-        return self._translations.get(key, code_name)
+        # Get the user's language from hass config
+        language = self.hass.config.language if hasattr(self, 'hass') else 'en'
+        
+        # Select the appropriate translation dictionary
+        if language.startswith('de'):
+            translations = _ERROR_TRANSLATIONS_DE
+        else:
+            translations = _ERROR_TRANSLATIONS_EN
+        
+        # Return translation or fallback to code name
+        return translations.get(code_name, code_name)
 
 
 class TotalOutputSensor(BwtEntity, SensorEntity):
@@ -146,13 +231,6 @@ class ErrorSensor(TranslatableErrorMixin, BwtEntity, SensorEntity):
         """Get the current list of fatal errors."""
         return [x for x in self.coordinator.data.errors() if x.is_fatal()]
 
-    async def async_added_to_hass(self) -> None:
-        """When entity is added to hass, load translations."""
-        await super().async_added_to_hass()
-        # Update values with translations now that they're loaded
-        self._update_values(self._get_errors())
-        self.async_write_ha_state()
-
     def _update_values(self, errors) -> None:
         """Update error values with translations."""
         raw_values = [x.name for x in errors]
@@ -189,13 +267,6 @@ class WarningSensor(TranslatableErrorMixin, BwtEntity, SensorEntity):
         """Get the current list of non-fatal warnings."""
         return [x for x in self.coordinator.data.errors() if not x.is_fatal()]
 
-    async def async_added_to_hass(self) -> None:
-        """When entity is added to hass, load translations."""
-        await super().async_added_to_hass()
-        # Update values with translations now that they're loaded
-        self._update_values(self._get_warnings())
-        self.async_write_ha_state()
-
     def _update_values(self, warnings) -> None:
         """Update warning values with translations."""
         raw_values = [x.name for x in warnings]
@@ -203,10 +274,13 @@ class WarningSensor(TranslatableErrorMixin, BwtEntity, SensorEntity):
         self._attr_extra_state_attributes = {"warning_codes": raw_values}
 
         # Translate warning names for display
-        translated = [self._translate_code(x.name) for x in warnings]
-        # Join translated parts and ensure it does not exceed 255 chars
-        joined = ", ".join(translated)
-        self._attr_native_value = truncate_value(joined, 255)
+        if warnings:
+            translated = [self._translate_code(x.name) for x in warnings]
+            # Join translated parts and ensure it does not exceed 255 chars
+            joined = ", ".join(translated)
+            self._attr_native_value = truncate_value(joined, 255)
+        else:
+            self._attr_native_value = ""
 
     @callback
     def _handle_coordinator_update(self) -> None:
