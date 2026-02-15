@@ -20,6 +20,7 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from .const import DOMAIN
 from .coordinator import BwtCoordinator
 from .sensors.base import *
+from .sensors.error import *
 
 _GLASS = "mdi:cup-water"
 _COUNTER = "mdi:counter"
