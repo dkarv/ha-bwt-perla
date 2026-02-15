@@ -1,6 +1,8 @@
 
 from datetime import datetime
 
+import logging
+
 from bwt_api.api import treated_to_blended
 from bwt_api.data import BwtStatus
 
@@ -19,8 +21,12 @@ from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from homeassistant.helpers import translation
 
+from ..util import truncate_value
+
 from ..const import DOMAIN
 from ..coordinator import BwtCoordinator
+
+_LOGGER = logging.getLogger(__name__)
 
 _FAUCET = "mdi:faucet"
 _WATER = "mdi:water"
@@ -156,7 +162,9 @@ class ErrorSensor(TranslatableErrorMixin, BwtEntity, SensorEntity):
         # Translate error names for display
         if errors:
             translated = [self._translate_code(x.name) for x in errors]
-            self._attr_native_value = ", ".join(translated)
+            # Join translated parts and ensure it does not exceed 255 chars
+            joined = ", ".join(translated)
+            self._attr_native_value = truncate_value(joined, 255)
         else:
             self._attr_native_value = ""
 
@@ -195,11 +203,10 @@ class WarningSensor(TranslatableErrorMixin, BwtEntity, SensorEntity):
         self._attr_extra_state_attributes = {"warning_codes": raw_values}
 
         # Translate warning names for display
-        if warnings:
-            translated = [self._translate_code(x.name) for x in warnings]
-            self._attr_native_value = ", ".join(translated)
-        else:
-            self._attr_native_value = ""
+        translated = [self._translate_code(x.name) for x in warnings]
+        # Join translated parts and ensure it does not exceed 255 chars
+        joined = ", ".join(translated)
+        self._attr_native_value = truncate_value(joined, 255)
 
     @callback
     def _handle_coordinator_update(self) -> None:

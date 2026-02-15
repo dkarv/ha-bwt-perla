@@ -1,59 +1,29 @@
 {
     "config": {
+        "abort": {
+            "already_configured": "Device is already configured"
+        },
+        "error": {
+            "cannot_connect": "Failed to connect",
+            "invalid_code_or_api_disabled": "Invalid code or local API not enabled. Please check: 1) Device firmware is version 2.02xx or later, 2) Local API is enabled in device Settings > General > Connection, 3) Login code is correct (sent via email during registration)",
+            "unknown": "Unexpected error"
+        },
         "step": {
             "user": {
                 "data": {
-                    "host": "[%key:common::config_flow::data::host%]",
-                    "code": "User-Code"
+                    "code": "User-Code",
+                    "host": "Host"
                 }
             }
-        },
-        "error": {
-            "cannot_connect": "[%key:common::config_flow::error::cannot_connect%]",
-            "invalid_code_or_api_disabled": "Invalid code or local API not enabled. Please check: 1) Device firmware is version 2.02xx or later, 2) Local API is enabled in device Settings > General > Connection, 3) Login code is correct (sent via email during registration)",
-            "unknown": "[%key:common::config_flow::error::unknown%]"
-        },
-        "abort": {
-            "already_configured": "[%key:common::config_flow::abort::already_configured_device%]"
         }
     },
     "entity": {
         "sensor": {
-            "regenerativ_mass": {
-                "name": "Total regeneration salt ever used"
+            "capacity_1": {
+                "name": "Remaining capacity of column 1"
             },
-            "regenerativ_days": {
-                "name": "Days left of regeneration salt"
-            },
-            "regenerativ_level": {
-                "name": "Precentage of regeneration salt"
-            },
-            "state": {
-                "name": "State of the machine"
-            },
-            "errors": {
-                "name": "Active errors"
-            },
-            "warnings": {
-                "name": "Active warnings"
-            },
-            "technician_service": {
-                "name": "Last service by technician"
-            },
-            "customer_service": {
-                "name": "Last service by customer"
-            },
-            "hardness_out": {
-                "name": "Outgoing water hardness"
-            },
-            "hardness_in": {
-                "name": "Incoming water hardness"
-            },
-            "total_output": {
-                "name": "Total water consumption"
-            },
-            "holiday_mode_start": {
-                "name": "Future start of holiday mode if available"
+            "capacity_2": {
+                "name": "Remaining capacity of column 1"
             },
             "counter_regeneration_1": {
                 "name": "Regeneration counter column 1"
@@ -61,29 +31,59 @@
             "counter_regeneration_2": {
                 "name": "Regeneration counter column 2"
             },
+            "current_flow": {
+                "name": "Current flow"
+            },
+            "customer_service": {
+                "name": "Last service by customer"
+            },
+            "day_output": {
+                "name": "Output of current day"
+            },
+            "errors": {
+                "name": "Active errors"
+            },
+            "hardness_in": {
+                "name": "Incoming water hardness"
+            },
+            "hardness_out": {
+                "name": "Outgoing water hardness"
+            },
+            "holiday_mode_start": {
+                "name": "Future start of holiday mode if available"
+            },
             "last_regeneration_1": {
                 "name": "Last regeneration column 1"
             },
             "last_regeneration_2": {
                 "name": "Last regeneration column 2"
             },
-            "capacity_1": {
-                "name": "Remaining capacity of column 1"
-            },
-            "capacity_2": {
-                "name": "Remaining capacity of column 2"
-            },
-            "day_output": {
-                "name": "Output of current day"
-            },
             "month_output": {
                 "name": "Output of current month"
             },
+            "regenerativ_days": {
+                "name": "Days left of regeneration salt"
+            },
+            "regenerativ_level": {
+                "name": "Percentage of regeneration salt"
+            },
+            "regenerativ_mass": {
+                "name": "Total regeneration salt ever used"
+            },
+            "state": {
+                "name": "State of the machine"
+            },
+            "technician_service": {
+                "name": "Last service by technician"
+            },
+            "total_output": {
+                "name": "Total water consumption"
+            },
+            "warnings": {
+                "name": "Active warnings"
+            },
             "year_output": {
                 "name": "Output of current year"
-            },
-            "current_flow": {
-                "name": "Current flow"
             },
             "holiday_mode": {
                 "name": "Holiday mode active"
@@ -110,7 +110,7 @@
                     "offline_motor_1": "Motor 1 offline",
                     "offline_motor_2": "Motor 2 offline",
                     "offline_motor_blend": "Blend motor offline",
-                    "regenerativ_20": "Regeneration salt level at 20%",
+                    "regenerativ_20": "Regeneration salt level < 20%",
                     "overcurrent_motor_1": "Overcurrent motor 1",
                     "overcurrent_motor_2": "Overcurrent motor 2",
                     "overcurrent_motor_3": "Overcurrent motor 3",
@@ -119,14 +119,14 @@
                     "stop_sensor": "Stop sensor",
                     "constant_flow": "Constant flow",
                     "low_pressure": "Low pressure",
-                    "piston_position": "Piston position error",
-                    "electronic": "Electronic error",
+                    "piston_position": "Piston position",
+                    "electronic": "Electronic",
                     "insufficient_regenerativ": "Insufficient regeneration salt",
                     "stop_wireless_sensor": "Stop wireless sensor",
                     "regenerativ_0": "Regeneration salt empty",
-                    "maintenance_customer": "Customer maintenance required",
+                    "maintenance_customer": "Routine maintenance due",
                     "inspection_customer": "Customer inspection required",
-                    "maintenance_service": "Service maintenance required",
+                    "maintenance_service": "Technician maintenance due",
                     "minerals_low": "Minerals low",
                     "minerals_0": "Minerals empty",
                     "overcurrent_valve_1": "Overcurrent valve 1",
@@ -135,10 +135,10 @@
                     "overcurrent_valve_ball": "Overcurrent ball valve",
                     "meter_not_counting": "Water meter not counting",
                     "regeneration_drain": "Regeneration drain issue",
-                    "init_pcb_0": "PCB initialization error 0",
-                    "init_pcb_1": "PCB initialization error 1",
-                    "position_motor_1": "Motor 1 position error",
-                    "position_motor_2": "Motor 2 position error",
+                    "init_pcb_0": "PCB initialization 0",
+                    "init_pcb_1": "PCB initialization 1",
+                    "position_motor_1": "Motor 1 position",
+                    "position_motor_2": "Motor 2 position",
                     "conductivity_high": "Conductivity too high",
                     "conductivity_limit_1": "Conductivity limit 1 exceeded",
                     "conductivity_limit_2": "Conductivity limit 2 exceeded",
