@@ -1,6 +1,8 @@
 
 from datetime import datetime
 
+import logging
+
 from bwt_api.api import treated_to_blended
 from bwt_api.data import BwtStatus
 
@@ -18,13 +20,14 @@ from homeassistant.core import callback
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
+
 from ..const import DOMAIN
 from ..coordinator import BwtCoordinator
 
+_LOGGER = logging.getLogger(__name__)
+
 _FAUCET = "mdi:faucet"
 _WATER = "mdi:water"
-_WARNING = "mdi:alert-circle"
-_ERROR = "mdi:alert-decagram"
 _WATER_CHECK = "mdi:water-check"
 _HOLIDAY = "mdi:location-exit"
 _UNKNOWN = "mdi:help-circle"
@@ -88,44 +91,6 @@ class CurrentFlowSensor(BwtEntity, SensorEntity):
         """Handle updated data from the coordinator."""
         # HA only has m3 / h, we get the values in l/h
         self._attr_native_value = self.coordinator.data.current_flow() / 1000.0
-        self.async_write_ha_state()
-
-
-class ErrorSensor(BwtEntity, SensorEntity):
-    """Errors reported by the device."""
-
-    _attr_icon = _ERROR
-
-    def __init__(self, coordinator, device_info, entry_id) -> None:
-        """Initialize the sensor with the common coordinator."""
-        super().__init__(coordinator, device_info, entry_id, "errors")
-        values = [x.name for x in self.coordinator.data.errors() if x.is_fatal()]
-        self._attr_native_value = ",".join(values)
-
-    @callback
-    def _handle_coordinator_update(self) -> None:
-        """Handle updated data from the coordinator."""
-        values = [x.name for x in self.coordinator.data.errors() if x.is_fatal()]
-        self._attr_native_value = ",".join(values)
-        self.async_write_ha_state()
-
-
-class WarningSensor(BwtEntity, SensorEntity):
-    """Warnings reported by the device."""
-
-    _attr_icon = _WARNING
-
-    def __init__(self, coordinator, device_info, entry_id) -> None:
-        """Initialize the sensor with the common coordinator."""
-        super().__init__(coordinator, device_info, entry_id, "warnings")
-        values = [x.name for x in self.coordinator.data.errors() if not x.is_fatal()]
-        self._attr_native_value = ",".join(values)
-
-    @callback
-    def _handle_coordinator_update(self) -> None:
-        """Handle updated data from the coordinator."""
-        values = [x.name for x in self.coordinator.data.errors() if not x.is_fatal()]
-        self._attr_native_value = ",".join(values)
         self.async_write_ha_state()
 
 
