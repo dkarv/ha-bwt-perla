@@ -22,15 +22,17 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up BWT Perla from a config entry."""
 
     hass.data.setdefault(DOMAIN, {})
+    if CONF_CODE in entry.data:
+        api = BwtApi(entry.data["host"], entry.data["code"])
+    else:
+        api = BwtSilkApi(entry.data["host"])
     try:
         if CONF_CODE in entry.data:
-            api = BwtApi(entry.data["host"], entry.data["code"])
             await api.get_current_data()
         else:
-            api = BwtSilkApi(entry.data["host"])
             await api.get_registers()
     except Exception as e:
-        _LOGGER.exception("Error setting up Bwt API")
+        _LOGGER.debug("Error connecting to BWT device at %s: %s", entry.data["host"], e)
         await api.close()
         raise ConfigEntryNotReady from e
 
