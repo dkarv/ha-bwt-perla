@@ -125,8 +125,14 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 _LOGGER.exception("Unexpected exception")
                 errors["base"] = "unknown"
 
+        # Pre-fill the code from the existing entry during reconfiguration
+        default_code = None
+        if self.source == "reconfigure":
+            current = self._get_reconfigure_entry()
+            default_code = current.data.get(CONF_CODE)
+
         return self.async_show_form(
-            step_id="code", data_schema=_code_schema(), errors=errors
+            step_id="code", data_schema=_code_schema(default_code), errors=errors
         )
     
 
