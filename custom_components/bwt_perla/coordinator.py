@@ -2,16 +2,18 @@
 
 import asyncio
 from datetime import timedelta
+import json
 import logging
+
+from bwt_api.bwt import BwtModel
+from bwt_api.exception import BwtException
+
+from homeassistant.core import HomeAssistant
+from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
 from .data.data import ApiData
 from .data.local import LocalApiData
 from .data.silk import SilkApiData
-from bwt_api.bwt import BwtModel
-
-from homeassistant.core import HomeAssistant
-from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
-from homeassistant.exceptions import ConfigEntryNotReady
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -42,21 +44,29 @@ class BwtCoordinator(DataUpdateCoordinator[ApiData]):
         This is the place to pre-process the data to lookup tables
         so entities can quickly look up their data.
         """
-        #        try:
         # Note: asyncio.TimeoutError and aiohttp.ClientError are already
-        # handled by the data update coordinator.
-        async with asyncio.timeout(10):
-            if self.model == BwtModel.PERLA_LOCAL_API:
-                new_values = LocalApiData(await self.my_api.get_current_data())
-            elif self.model == BwtModel.PERLA_SILK:
-                new_values = SilkApiData(await self.my_api.get_registers())
-            else:
-                _LOGGER.error("Unsupported API type: %s", type(self.my_api))
-                raise Exception("Unsupported API type")
-            self.update_interval = calculate_update_interval(
-                self.update_interval, new_values.current_flow()
-            )
-            return new_values
+        # handled by the data update coordinator. However, bwt_api raises
+        # its own BwtException hierarchy (not derived from aiohttp.ClientError)
+        # and the device may return empty responses that cause JSONDecodeError.
+        # Both must be caught here to avoid unhandled tracebacks.
+        try:
+            async with asyncio.timeout(10):
+                if self.model == BwtModel.PERLA_LOCAL_API:
+                    new_values = LocalApiData(await self.my_api.get_current_data())
+                elif self.model == BwtModel.PERLA_SILK:
+                    new_values = SilkApiData(await self.my_api.get_registers())
+                else:
+                    raise UpdateFailed(
+                        f"Unsupported API type: {type(self.my_api)}"
+                    )
+        except (BwtException, json.JSONDecodeError) as err:
+            raise UpdateFailed(
+                f"Error communicating with BWT device: {err}"
+            ) from err
+        self.update_interval = calculate_update_interval(
+            self.update_interval, new_values.current_flow()
+        )
+        return new_values
 
     def get_model_suffix(self) -> str:
         """Get the model suffix based on the number of columns."""
