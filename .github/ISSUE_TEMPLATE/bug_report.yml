@@ -1,0 +1,51 @@
+name: Bug report
+description: Report a problem with the BWT Perla integration
+title: "[Bug]: "
+labels:
+  - bug
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report an issue.
+
+        To help us troubleshoot quickly, **debug logs are required**. [Official documentation on how to enable debug logging.](https://www.home-assistant.io/docs/configuration/troubleshooting/#debug-logs-and-diagnostics)
+
+  - type: textarea
+    id: description
+    attributes:
+      label: What happened?
+      description: A clear and concise description of the problem.
+      placeholder: Tell us what you expected and what actually happened.
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: List exact steps so we can reproduce the issue.
+      placeholder: |
+        1. Go to ...
+        2. Click on ...
+        3. Observe ...
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: Integration version
+      description: Which version of ha-bwt-perla are you using?
+      placeholder: e.g. 1.2.3
+    validations:
+      required: true
+
+  - type: input
+    id: ha_version
+    attributes:
+      label: Home Assistant version
+      description: Which Home Assistant version are you running?
+      placeholder: e.g. 2026.3.1
+    validations:
+      required: true
