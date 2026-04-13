@@ -120,7 +120,7 @@
                     "error_low_pressure": "Low pressure",
                     "error_piston_position": "Piston position",
                     "error_electronic": "Electronic",
-                    "error_insufficient_regenerativ": "Insufficient regeneration salt",
+                    "error_insufficient_regenerativ": "Regeneration agent volume not reached",
                     "error_stop_wireless_sensor": "Stop wireless sensor",
                     "error_regenerativ_0": "Regeneration salt empty",
                     "error_maintenance_customer": "Routine maintenance due",
