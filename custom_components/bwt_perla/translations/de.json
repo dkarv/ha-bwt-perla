@@ -120,7 +120,7 @@
                     "error_low_pressure": "Niedriger Druck",
                     "error_piston_position": "Kolbenpositionsfehler",
                     "error_electronic": "Elektronikfehler",
-                    "error_insufficient_regenerativ": "Unzureichendes Regeneriersalz",
+                    "error_insufficient_regenerativ": "Regeneriermittelvolumen nicht erreicht",
                     "error_stop_wireless_sensor": "Funk-Sensor-Stopp",
                     "error_regenerativ_0": "Regeneriersalz leer",
                     "error_maintenance_customer": "Kundenwartung erforderlich",
