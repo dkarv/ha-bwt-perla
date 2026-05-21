@@ -4,16 +4,20 @@ _BWT Perla integration repository for [HACS](https://github.com/custom-component
 <!--
 [![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=dkarv&repository=ha-bwt-perla)
 -->
-### Requirements
+### Requirements and Compatibility
 
-*BWT Perla One* or *BWT Perla Duplex*:
+This integration supports only these three device types:
+
+*BWT Perla One* and *BWT Perla Duplex*:
 * Firmware with at least version 2.02xx [(more info)](#how-can-i-get-the-firmware-update)
 * Local API enabled in Settings > General > Connection
 * "Login-Code" sent to you by mail during registration [(more info)](#where-do-i-get-the-login-code)
 * local network connection (you need the ip address during setup)
 
-UK *BWT Perla Silk*:
+*BWT Perla Silk*:
 * local network connection (you need the ip address during setup)
+
+It might work with other device types that offer compatible local apis. Please open an issue if you get it running with any other device or find a different local api in your device.
 
 ### Installation
 
