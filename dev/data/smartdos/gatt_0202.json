@@ -1,0 +1,8 @@
+{
+  "buzzerEn": true,
+  "dosingRate": 1.5,
+  "aqaVolumeEn": false,
+  "aqaWatchEn": false,
+  "aqaMaxFlowEn": false,
+  "aqaVolumeVal": 0
+}

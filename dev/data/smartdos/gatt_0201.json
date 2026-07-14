@@ -1,0 +1,10 @@
+{
+  "fwRev": "1.0.0",
+  "hwRev": "1",
+  "productCode": "SD-1000",
+  "uptime": 12345,
+  "operatingTime": 67890,
+  "devState": 1,
+  "activeStates": [1],
+  "commDate": "2026-01-01"
+}
