@@ -99,6 +99,27 @@
             },
             "dosing_total": {
                 "name": "Verbrauchte Menge Dosiermittel seit Inbetriebnahme"
+            },
+            "comm_date": {
+                "name": "Letztes Kommunikationsdatum"
+            },
+            "remaining_capacity_pct": {
+                "name": "Verbleibende Kapazität Prozent"
+            },
+            "remaining_capacity_days": {
+                "name": "Verbleibende Kapazität Tage"
+            },
+            "dosing_rate": {
+                "name": "Dosierungsrate"
+            },
+            "substance_dosage": {
+                "name": "Dosiermittelmenge"
+            },
+            "wifi_ssid": {
+                "name": "WiFi Netzwerkname"
+            },
+            "wifi_rssi": {
+                "name": "WiFi Signalstärke"
             }
         }
     },

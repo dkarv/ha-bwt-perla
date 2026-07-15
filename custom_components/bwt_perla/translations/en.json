@@ -99,6 +99,27 @@
             },
             "dosing_total": {
                 "name": "Total dosing means used"
+            },
+            "comm_date": {
+                "name": "Last communication date"
+            },
+            "remaining_capacity_pct": {
+                "name": "Remaining capacity percentage"
+            },
+            "remaining_capacity_days": {
+                "name": "Remaining capacity days"
+            },
+            "dosing_rate": {
+                "name": "Dosing rate"
+            },
+            "substance_dosage": {
+                "name": "Substance dosage"
+            },
+            "wifi_ssid": {
+                "name": "WiFi network name"
+            },
+            "wifi_rssi": {
+                "name": "WiFi signal strength"
             }
         }
     },

@@ -14,6 +14,7 @@ from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, Upda
 from .data.data import ApiData
 from .data.local import LocalApiData
 from .data.silk import SilkApiData
+from .data.smartdos import SmartDosApiData
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -55,6 +56,21 @@ class BwtCoordinator(DataUpdateCoordinator[ApiData]):
                     new_values = LocalApiData(await self.my_api.get_current_data())
                 elif self.model == BwtModel.PERLA_SILK:
                     new_values = SilkApiData(await self.my_api.get_registers())
+                elif self.model == BwtModel.SMART_DOS:
+                    device_info = await self.my_api.get_device_info()
+                    configuration = await self.my_api.get_configuration()
+                    remaining_capacity = await self.my_api.get_remaining_capacity()
+                    treated_water = await self.my_api.get_treated_water()
+                    substance_dosage = await self.my_api.get_substance_dosage()
+                    wifi_info = await self.my_api.get_wifi_info()
+                    new_values = SmartDosApiData(
+                        device_info,
+                        configuration,
+                        remaining_capacity,
+                        treated_water,
+                        substance_dosage,
+                        wifi_info,
+                    )
                 else:
                     raise UpdateFailed(
                         f"Unsupported API type: {type(self.my_api)}"
@@ -74,11 +90,15 @@ class BwtCoordinator(DataUpdateCoordinator[ApiData]):
             if self.data.columns() == 2:
                 return "Duplex"
             return "One"
-        return "Silk"
+        if self.model == BwtModel.PERLA_SILK:
+            return "Silk"
+        return "SmartDos"
 
     def get_firmware_version(self) -> str:
         """Get the firmware version."""
         if self.model == BwtModel.PERLA_LOCAL_API:
+            return self.data.firmware_version()
+        if self.model == BwtModel.SMART_DOS:
             return self.data.firmware_version()
         return "Unknown"
 

@@ -1,5 +1,5 @@
 """BWT Sensors."""
-from bwt_api.api import BwtApi
+from bwt_api.api import BwtApi, BwtSmartDosApi
 from bwt_api.bwt import BwtModel
 from bwt_api.exception import WrongCodeException
 
@@ -11,6 +11,7 @@ from homeassistant.const import (
     PERCENTAGE,
     UnitOfMass,
     UnitOfTime,
+    UnitOfVolume,
 )
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryAuthFailed
@@ -36,6 +37,9 @@ _DAY = "mdi:calendar-today"
 _MONTH = "mdi:calendar-month"
 _YEAR = "mdi:calendar-blank-multiple"
 _OIL_LEVEL = "mdi:oil-level"
+_WATER = "mdi:water"
+_WATER_CHECK = "mdi:water-check"
+_UNKNOWN = "mdi:help-circle"
 
 
 async def async_setup_entry(
@@ -45,7 +49,12 @@ async def async_setup_entry(
 ) -> None:
     """Set up bwt sensors from config entry."""
     my_api = hass.data[DOMAIN][config_entry.entry_id]
-    model = BwtModel.PERLA_LOCAL_API if isinstance(my_api, BwtApi) else BwtModel.PERLA_SILK
+    if isinstance(my_api, BwtApi):
+        model = BwtModel.PERLA_LOCAL_API
+    elif isinstance(my_api, BwtSmartDosApi):
+        model = BwtModel.SMART_DOS
+    else:
+        model = BwtModel.PERLA_SILK
     coordinator = BwtCoordinator(hass, my_api, model)
 
     try:
@@ -69,53 +78,59 @@ async def async_setup_entry(
         via_device=None,
     )
 
-    entities = [
-        TotalOutputSensor(coordinator, device_info, config_entry.entry_id),
-        SimpleSensor(
-            coordinator,
-            device_info,
-            config_entry.entry_id,
-            "hardness_in",
-            lambda data: data.hardness_in(),
-            _WATER_PLUS,
-        ),
-        UnitSensor(
-            coordinator,
-            device_info,
-            config_entry.entry_id,
-            "regenerativ_level",
-            lambda data: data.regenerativ_level(),
-            PERCENTAGE,
-            _PERCENTAGE,
-        ),
-        CalculatedWaterSensor(
-            coordinator,
-            device_info,
-            config_entry.entry_id,
-            "day_output",
-            lambda data: data.day_output(),
-            _DAY,
-        ),
-        CurrentFlowSensor(coordinator, device_info, config_entry.entry_id),
-        UnitSensor(
-            coordinator,
-            device_info,
-            config_entry.entry_id,
-            "capacity_1",
-            lambda data: data.capacity_1(),
-            UnitOfVolume.LITERS,
-            _GLASS,
-            0,
-        ),
-        SimpleSensor(
-            coordinator,
-            device_info,
-            config_entry.entry_id,
-            "counter_regeneration_1",
-            lambda data: data.regeneration_count_1(),
-            _COUNTER,
-        ),
-    ]
+    # Build base entity list: SmartDos has its own set, Perla models share common ones
+    if model == BwtModel.SMART_DOS:
+        # SmartDos: only add model-specific entities, skip unsupported common ones
+        entities = []
+    else:
+        # Perla Local API and Silk: add supported common entities
+        entities = [
+            TotalOutputSensor(coordinator, device_info, config_entry.entry_id),
+            SimpleSensor(
+                coordinator,
+                device_info,
+                config_entry.entry_id,
+                "hardness_in",
+                lambda data: data.hardness_in(),
+                _WATER_PLUS,
+            ),
+            UnitSensor(
+                coordinator,
+                device_info,
+                config_entry.entry_id,
+                "regenerativ_level",
+                lambda data: data.regenerativ_level(),
+                PERCENTAGE,
+                _PERCENTAGE,
+            ),
+            CalculatedWaterSensor(
+                coordinator,
+                device_info,
+                config_entry.entry_id,
+                "day_output",
+                lambda data: data.day_output(),
+                _DAY,
+            ),
+            CurrentFlowSensor(coordinator, device_info, config_entry.entry_id),
+            UnitSensor(
+                coordinator,
+                device_info,
+                config_entry.entry_id,
+                "capacity_1",
+                lambda data: data.capacity_1(),
+                UnitOfVolume.LITERS,
+                _GLASS,
+                0,
+            ),
+            SimpleSensor(
+                coordinator,
+                device_info,
+                config_entry.entry_id,
+                "counter_regeneration_1",
+                lambda data: data.regeneration_count_1(),
+                _COUNTER,
+            ),
+        ]
 
     if model == BwtModel.PERLA_LOCAL_API:
         entities.append(
@@ -231,7 +246,7 @@ async def async_setup_entry(
             entities.append(DeviceClassSensor(
                 coordinator,
                 device_info,
-                config_entry.entry_id,
+                entry_id,
                 "last_regeneration_2",
                 lambda data: data.last_regeneration_2(),
                 SensorDeviceClass.TIMESTAMP,
@@ -259,6 +274,113 @@ async def async_setup_entry(
                 )
             )
 
+    elif model == BwtModel.SMART_DOS:
+        entities.append(
+            SimpleSensor(
+                coordinator,
+                device_info,
+                config_entry.entry_id,
+                "state",
+                lambda data: data.device_state(),
+                _WATER_CHECK,
+            )
+        )
+        entities.append(
+            SimpleSensor(
+                coordinator,
+                device_info,
+                config_entry.entry_id,
+                "warnings",
+                lambda data: data.active_states(),
+                _UNKNOWN,
+            )
+        )
+        entities.append(
+            SimpleSensor(
+                coordinator,
+                device_info,
+                config_entry.entry_id,
+                "comm_date",
+                lambda data: data.comm_date(),
+                _TIME,
+            )
+        )
+        entities.append(
+            UnitSensor(
+                coordinator,
+                device_info,
+                config_entry.entry_id,
+                "capacity_1",
+                lambda data: data.capacity_1(),
+                UnitOfVolume.LITERS,
+                _GLASS,
+                0,
+            )
+        )
+        entities.append(
+            UnitSensor(
+                coordinator,
+                device_info,
+                config_entry.entry_id,
+                "remaining_capacity_pct",
+                lambda data: data.remaining_capacity_pct(),
+                PERCENTAGE,
+                _PERCENTAGE,
+                0,
+            )
+        )
+        entities.append(
+            UnitSensor(
+                coordinator,
+                device_info,
+                config_entry.entry_id,
+                "remaining_capacity_days",
+                lambda data: data.remaining_capacity_days(),
+                UnitOfTime.DAYS,
+                _DAYS_LEFT,
+            )
+        )
+        entities.append(
+            SimpleSensor(
+                coordinator,
+                device_info,
+                config_entry.entry_id,
+                "dosing_rate",
+                lambda data: data.dosing_rate(),
+                _OIL_LEVEL,
+            )
+        )
+        entities.append(
+            UnitSensor(
+                coordinator,
+                device_info,
+                config_entry.entry_id,
+                "substance_dosage",
+                lambda data: data.substance_dosage(),
+                UnitOfVolume.MILLILITERS,
+                _OIL_LEVEL,
+            )
+        )
+        entities.append(
+            SimpleSensor(
+                coordinator,
+                device_info,
+                config_entry.entry_id,
+                "wifi_ssid",
+                lambda data: data.wifi_ssid(),
+                _UNKNOWN,
+            )
+        )
+        entities.append(
+            SimpleSensor(
+                coordinator,
+                device_info,
+                config_entry.entry_id,
+                "wifi_rssi",
+                lambda data: data.wifi_rssi(),
+                _WATER,
+            )
+        )
     elif model == BwtModel.PERLA_SILK:
         entities.append(
             DeviceClassSensor(
