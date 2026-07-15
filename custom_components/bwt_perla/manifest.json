@@ -11,6 +11,6 @@
   "issue_tracker": "https://github.com/dkarv/ha-bwt-perla/issues",
   "requirements": ["bwt_api==1.0.0"],
   "ssdp": [],
-  "version": "0.7.1",
+  "version": "0.8.0-beta",
   "zeroconf": []
 }
