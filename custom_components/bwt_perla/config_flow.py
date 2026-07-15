@@ -54,6 +54,9 @@ async def validate_input(hass: HomeAssistant, data: dict[str, Any]) -> dict[str,
             async with BwtSilkApi(data[CONF_HOST]) as api:
                 await api.get_registers()
                 name = "BWT Perla Silk"
+        case BwtModel.SMART_DOS:
+            _LOGGER.debug("BWT SmartDos detected")
+            name = "BWT SmartDos"
         case _:
             _LOGGER.error("Unsupported BWT model: %s", model)
             raise ValueError(f"Unsupported BWT model: {model}")
@@ -81,11 +84,11 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                         # Ask user for login code
                         self._host = user_input[CONF_HOST]
                         return await self.async_step_code()
-                    case BwtModel.PERLA_SILK:
+                    case BwtModel.PERLA_SILK | BwtModel.SMART_DOS:
+                        user_input["model"] = info["model"].name
                         return self.async_create_entry(title=info["title"], data=user_input)
                     case _:
                         errors["base"] = "unsupported_model"
-                return self.async_create_entry(title=info["title"], data=user_input)
             except ConnectException:
                 _LOGGER.exception("Connection error setting up the Bwt Api")
                 errors["base"] = "cannot_connect"
@@ -107,6 +110,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             user_input[CONF_HOST] = self._host
             try:
                 info = await validate_input(self.hass, user_input)
+                user_input["model"] = info["model"].name
                 # If this flow was started as a reconfiguration, update the
                 # existing entry instead of creating a new one.
                 if self.source == "reconfigure":
@@ -148,7 +152,8 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                         # Need to ask for login code during reconfigure
                         self._host = user_input[CONF_HOST]
                         return await self.async_step_code()
-                    case BwtModel.PERLA_SILK:
+                    case BwtModel.PERLA_SILK | BwtModel.SMART_DOS:
+                        user_input["model"] = info["model"].name
                         self.hass.config_entries.async_update_entry(current, data=user_input)
                         await self.hass.config_entries.async_reload(current.entry_id)
                         return self.async_abort(reason="reconfiguration_successful")

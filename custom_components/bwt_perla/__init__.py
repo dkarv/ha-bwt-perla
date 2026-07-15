@@ -2,7 +2,8 @@
 
 import logging
 
-from bwt_api.api import BwtApi, BwtSilkApi
+from bwt_api.api import BwtApi, BwtSilkApi, BwtSmartDosApi
+from bwt_api.bwt import BwtModel
 from bwt_api.exception import BwtException
 
 from homeassistant.config_entries import ConfigEntry
@@ -22,15 +23,33 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up BWT Perla from a config entry."""
 
     hass.data.setdefault(DOMAIN, {})
-    if CONF_CODE in entry.data:
-        api = BwtApi(entry.data["host"], entry.data["code"])
-    else:
+    # Backwards compatibility: older config entries may not have a `model` key.
+    model_value = entry.data.get("model")
+    if model_value is None:
+        # Fall back to previous behaviour: presence of CONF_CODE implied local API,
+        # otherwise assume Silk API. Update the config entry for future runs.
+        inferred = BwtModel.PERLA_LOCAL_API if CONF_CODE in entry.data else BwtModel.PERLA_SILK
+        model_value = inferred.name
+        new_data = dict(entry.data)
+        new_data["model"] = model_value
+        hass.config_entries.async_update_entry(entry, data=new_data)
+
+    if model_value == BwtModel.PERLA_LOCAL_API.name:
+        api = BwtApi(entry.data["host"], entry.data.get("code"))
+    elif model_value == BwtModel.PERLA_SILK.name:
         api = BwtSilkApi(entry.data["host"])
+    elif model_value == BwtModel.SMART_DOS.name:
+        api = BwtSmartDosApi(entry.data["host"])
+    else:
+        raise ConfigEntryNotReady(f"Unsupported BWT model: {entry.data.get('model')}")
+
     try:
-        if CONF_CODE in entry.data:
+        if entry.data.get("model") == BwtModel.PERLA_LOCAL_API.name:
             await api.get_current_data()
-        else:
+        elif entry.data.get("model") == BwtModel.PERLA_SILK.name:
             await api.get_registers()
+        elif entry.data.get("model") == BwtModel.SMART_DOS.name:
+            await api.get_gatt_0201()
     except Exception as e:
         _LOGGER.debug("Error connecting to BWT device at %s: %s", entry.data["host"], e)
         await api.close()

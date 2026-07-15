@@ -1,10 +1,10 @@
 {
-  "fwRev": "1.0.0",
+  "fwRev": "1.2.3",
   "hwRev": "1",
   "productCode": "SD-1000",
   "uptime": 12345,
   "operatingTime": 67890,
-  "devState": 1,
-  "activeStates": [1],
+  "devState": 2001,
+  "activeStates": [2001, 7003],
   "commDate": "2026-01-01"
 }
