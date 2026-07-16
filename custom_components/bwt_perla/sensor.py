@@ -246,7 +246,7 @@ async def async_setup_entry(
             entities.append(DeviceClassSensor(
                 coordinator,
                 device_info,
-                entry_id,
+                config_entry.entry_id,
                 "last_regeneration_2",
                 lambda data: data.last_regeneration_2(),
                 SensorDeviceClass.TIMESTAMP,
