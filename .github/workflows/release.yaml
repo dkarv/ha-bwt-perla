@@ -17,8 +17,15 @@ jobs:
       - name: Read version from manifest.json
         id: manifest
         run: |
-          VERSION=$(jq -r '.version' custom_components/bwt_perla/manifest.json)
+          VERSION=$(jq -r '.version' custom_components/komodo/manifest.json)
           echo "version=$VERSION" >> $GITHUB_OUTPUT
+          if echo "$VERSION" | grep -qE '-beta$'; then
+            echo "is_beta=true" >> $GITHUB_OUTPUT
+            echo "Will publish as prerelease"
+          else
+            echo "is_beta=false" >> $GITHUB_OUTPUT
+            echo "Will publish as full release"
+          fi
           echo "Version: $VERSION"
 
 
@@ -39,5 +46,6 @@ jobs:
         with:
           tag_name: "v${{ steps.manifest.outputs.version }}"
           generate_release_notes: true
+          prerelease: ${{ steps.manifest.outputs.is_beta == 'true' }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
