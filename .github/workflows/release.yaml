@@ -17,7 +17,7 @@ jobs:
       - name: Read version from manifest.json
         id: manifest
         run: |
-          VERSION=$(jq -r '.version' custom_components/komodo/manifest.json)
+          VERSION=$(jq -r '.version' custom_components/*/manifest.json)
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           if echo "$VERSION" | grep -qE '-beta$'; then
             echo "is_beta=true" >> $GITHUB_OUTPUT
