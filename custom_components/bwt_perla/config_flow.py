@@ -2,7 +2,7 @@
 import logging
 from typing import Any
 
-from bwt_api.api import BwtApi, BwtSilkApi
+from bwt_api.api import BwtApi, BwtSilkApi, BwtSmartDosApi
 from bwt_api.bwt import determine_bwt_model, BwtModel
 from bwt_api.exception import ConnectException, WrongCodeException
 import voluptuous as vol
@@ -41,22 +41,25 @@ async def validate_input(hass: HomeAssistant, data: dict[str, Any]) -> dict[str,
     """
     model = await determine_bwt_model(data[CONF_HOST])
     name = "BWT Perla"
+    lib_logger = _LOGGER.getChild("bwt_api")
     match model:
         case BwtModel.PERLA_LOCAL_API:
             _LOGGER.debug("BWT Perla with local api detected")
             if CONF_CODE in data:
-                async with BwtApi(data[CONF_HOST], data[CONF_CODE]) as api:
+                async with BwtApi(data[CONF_HOST], data[CONF_CODE], lib_logger) as api:
                     data = await api.get_current_data()
                     suffix = "One" if data.columns == 1 else "Duplex"
                     name = f"BWT Perla {suffix}"
         case BwtModel.PERLA_SILK:
             _LOGGER.debug("BWT Perla with Silk API detected")
-            async with BwtSilkApi(data[CONF_HOST]) as api:
+            async with BwtSilkApi(data[CONF_HOST], lib_logger) as api:
                 await api.get_registers()
                 name = "BWT Perla Silk"
         case BwtModel.SMART_DOS:
             _LOGGER.debug("BWT SmartDos detected")
-            name = "BWT SmartDos"
+            async with BwtSmartDosApi(data[CONF_HOST], lib_logger) as api:
+                await api.get_gatt_0201()
+                name = "BWT SmartDos"
         case _:
             _LOGGER.error("Unsupported BWT model: %s", model)
             raise ValueError(f"Unsupported BWT model: {model}")
@@ -93,7 +96,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 _LOGGER.exception("Connection error setting up the Bwt Api")
                 errors["base"] = "cannot_connect"
             except Exception as e:  # pylint: disable=broad-except
-                _LOGGER.exception(f"Unexpected exception {e}")
+                _LOGGER.exception("Unexpected exception %s", e)
                 errors["base"] = "unknown"
 
         return self.async_show_form(

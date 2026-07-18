@@ -2,3 +2,4 @@ homeassistant
 bwt_api
 mock
 pytest
+flask

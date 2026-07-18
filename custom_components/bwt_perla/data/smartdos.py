@@ -1,3 +1,5 @@
+from typing import Optional
+
 from .data import ApiData
 from bwt_api.data import (
     ConfigurationResponse,
@@ -49,7 +51,9 @@ class SmartDosApiData(ApiData):
     def day_output(self) -> int:
         return 0
 
-    def capacity_1(self) -> int:
+    def capacity_1(self) -> Optional[int]:
+        if self._remaining_capacity.rem_capacity is None:
+            return None
         return int(self._remaining_capacity.rem_capacity / 1000.0)
 
     def regeneration_count_1(self) -> int:

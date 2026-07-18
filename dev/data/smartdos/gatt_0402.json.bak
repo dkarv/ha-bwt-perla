@@ -1,4 +1,5 @@
 {
+  "remCapacity": 500,
   "remCapacityPct": 50,
   "remCapacityDays": 30
 }

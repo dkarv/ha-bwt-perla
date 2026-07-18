@@ -34,12 +34,13 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         new_data["model"] = model_value
         hass.config_entries.async_update_entry(entry, data=new_data)
 
+    lib_logger = _LOGGER.getChild("bwt_api")
     if model_value == BwtModel.PERLA_LOCAL_API.name:
-        api = BwtApi(entry.data["host"], entry.data.get("code"))
+        api = BwtApi(entry.data["host"], entry.data.get("code"), lib_logger)
     elif model_value == BwtModel.PERLA_SILK.name:
-        api = BwtSilkApi(entry.data["host"])
+        api = BwtSilkApi(entry.data["host"], lib_logger)
     elif model_value == BwtModel.SMART_DOS.name:
-        api = BwtSmartDosApi(entry.data["host"])
+        api = BwtSmartDosApi(entry.data["host"], lib_logger)
     else:
         raise ConfigEntryNotReady(f"Unsupported BWT model: {entry.data.get('model')}")
 
