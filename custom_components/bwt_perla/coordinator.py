@@ -1,6 +1,7 @@
 """Coordinator to fetch the data once for all sensors."""
 
 import asyncio
+from typing import Optional
 from datetime import timedelta
 import json
 import logging
@@ -101,6 +102,13 @@ class BwtCoordinator(DataUpdateCoordinator[ApiData]):
         if self.model == BwtModel.SMART_DOS:
             return self.data.firmware_version()
         return "Unknown"
+
+    def get_hardware_version(self) -> Optional[str]:
+        """Get the hardware version when available."""
+        if hasattr(self.data, 'hardware_version'):
+            hw_version = self.data.hardware_version()
+            return hw_version if hw_version else None
+        return None
 
 
 def calculate_update_interval(current_interval: timedelta | None, current_flow: int):

@@ -99,6 +99,39 @@
             },
             "dosing_total": {
                 "name": "Total dosing means used"
+            },
+            "dosing_rate": {
+                "name": "Dosing rate"
+            },
+            "substance_dosage": {
+                "name": "Dosing substance amount"
+            },
+            "remaining_capacity_pct": {
+                "name": "Remaining capacity percent"
+            },
+            "remaining_capacity_days": {
+                "name": "Remaining capacity days"
+            },
+            "wifi_ssid": {
+                "name": "WiFi network name"
+            },
+            "wifi_rssi": {
+                "name": "Average WiFi signal strength"
+            },
+            "mac_address": {
+                "name": "MAC address"
+            },
+            "buzzer": {
+                "name": "Buzzer"
+            },
+            "aqa_max_flow": {
+                "name": "AQA max flow alert"
+            },
+            "aqa_watch": {
+                "name": "AQA watch alert"
+            },
+            "aqa_max_volume": {
+                "name": "AQA max volume alert"
             }
         }
     },
@@ -148,7 +181,20 @@
                     "error_offline_valve_ball": "Ball valve offline",
                     "error_external_filter_change": "External filter change required",
                     "error_brine_unsaturated": "Brine unsaturated",
-                    "error_dosing_fault": "Dosing fault"
+                    "error_dosing_fault": "Dosing fault",
+    "error_standby": "Standby",
+    "error_metering_active": "Metering active",
+    "error_mineral_container_level_low": "Mineral container level low",
+    "error_mineral_container_empty": "Mineral container empty",
+    "error_smart_mineral_running_low": "Smart mineral running low",
+    "error_smart_mineral_run_out": "Smart mineral run out",
+    "error_aqa_volume_alarm": "AQA volume alarm",
+    "error_aqa_watch_alarm": "AQA watch alarm",
+    "error_aqa_maxflow_alarm": "AQA max flow alarm",
+    "error_pump_fault": "Pump fault",
+    "error_pump_power_fault": "Pump power fault",
+    "error_pump_control_fault": "Pump control fault"
+
             }
         }
     }

@@ -1,8 +1,24 @@
 {
-  "buzzerEn": true,
-  "dosingRate": 1.5,
-  "aqaVolumeEn": false,
-  "aqaWatchEn": false,
-  "aqaMaxFlowEn": false,
-  "aqaVolumeVal": 0
+    "buzzerEn": false,
+    "dosingRate": 10,
+    "volumePerStroke": 0.053784001618623734,
+    "pouchEmptyTimeout": 7200,
+    "pouchNotEmptyTimeout": 20,
+    "aqaVolumeEn": false,
+    "aqaWatchEn": false,
+    "aqaMaxFlowEn": false,
+    "aqaVolumeVal": 9999,
+    "aqaWatchVal": 0,
+    "aqaMaxFlowVal": 7,
+    "restServerEn": true,
+    "defaults": {
+        "consumable": {
+            "totCap": 1500
+        },
+        "aqaAlert": {
+            "aqaVolumeVal": 9999,
+            "aqaWatchVal": 60,
+            "aqaMaxFlowVal": 7
+        }
+    }
 }

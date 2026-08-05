@@ -1,4 +1,13 @@
 {
-  "ssid": "MyWiFi",
-  "rssi": -42
+    "ssid": "MyWiFi",
+    "rssi": null,
+    "rssiAvg": "-54.00",
+    "rssiSig": "0.00",
+    "dhcp": true,
+    "ip": null,
+    "sn": null,
+    "sg": null,
+    "pDns": null,
+    "sDns": null,
+    "mac": "AA:BB:CC:DD:EE:FF"
 }

@@ -1,10 +1,17 @@
 {
-  "fwRev": "1.2.3",
-  "hwRev": "1",
-  "productCode": "SD-1000",
-  "uptime": 12345,
-  "operatingTime": 67890,
-  "devState": 2001,
-  "activeStates": [2001, 7003],
-  "commDate": "2026-01-01"
+    "fwRev": "1.2.0",
+    "hwRev": "2.4.0(A)",
+    "productCode": "1AAA-2BBB",
+    "iotDevId": "abcdefgh-1234-5678-abcd-1234567890ab",
+    "iotDevType": "bwt_bewados",
+    "iotDevVariant": "dev",
+    "uptime": 6510811,
+    "operatingTime": 40773211,
+    "devState": 2001,
+    "activeStates": [
+        2001,2002, 7001,7002,7003,7004,7005,7006,7007,8001,8002,8003
+    ],
+    "commDate": "2026-01-04T10:01:05.891Z",
+    "lifeTimeFlow_ml": 112507432,
+    "lifeTimeDosed_ml": 2746.1572265625
 }

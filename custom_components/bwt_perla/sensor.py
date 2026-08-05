@@ -67,7 +67,7 @@ async def async_setup_entry(
         configuration_url=None,
         connections=set(),
         entry_type=None,
-        hw_version=None,
+        hw_version=coordinator.get_hardware_version(),
         identifiers={(DOMAIN, config_entry.entry_id)},
         manufacturer="BWT",
         model=f'Perla {model_suffix}',
@@ -275,112 +275,32 @@ async def async_setup_entry(
             )
 
     elif model == BwtModel.SMART_DOS:
-        entities.append(
-            SimpleSensor(
-                coordinator,
-                device_info,
-                config_entry.entry_id,
-                "state",
-                lambda data: data.device_state(),
-                _WATER_CHECK,
-            )
-        )
-        entities.append(
-            SimpleSensor(
-                coordinator,
-                device_info,
-                config_entry.entry_id,
-                "warnings",
-                lambda data: data.active_states(),
-                _UNKNOWN,
-            )
-        )
-        entities.append(
-            SimpleSensor(
-                coordinator,
-                device_info,
-                config_entry.entry_id,
-                "comm_date",
-                lambda data: data.comm_date(),
-                _TIME,
-            )
-        )
-        entities.append(
-            UnitSensor(
-                coordinator,
-                device_info,
-                config_entry.entry_id,
-                "capacity_1",
-                lambda data: data.capacity_1(),
-                UnitOfVolume.LITERS,
-                _GLASS,
-                0,
-            )
-        )
-        entities.append(
-            UnitSensor(
-                coordinator,
-                device_info,
-                config_entry.entry_id,
-                "remaining_capacity_pct",
-                lambda data: data.remaining_capacity_pct(),
-                PERCENTAGE,
-                _PERCENTAGE,
-                0,
-            )
-        )
-        entities.append(
-            UnitSensor(
-                coordinator,
-                device_info,
-                config_entry.entry_id,
-                "remaining_capacity_days",
-                lambda data: data.remaining_capacity_days(),
-                UnitOfTime.DAYS,
-                _DAYS_LEFT,
-            )
-        )
-        entities.append(
-            SimpleSensor(
-                coordinator,
-                device_info,
-                config_entry.entry_id,
-                "dosing_rate",
-                lambda data: data.dosing_rate(),
-                _OIL_LEVEL,
-            )
-        )
-        entities.append(
-            UnitSensor(
-                coordinator,
-                device_info,
-                config_entry.entry_id,
-                "substance_dosage",
-                lambda data: data.substance_dosage(),
-                UnitOfVolume.MILLILITERS,
-                _OIL_LEVEL,
-            )
-        )
-        entities.append(
-            SimpleSensor(
-                coordinator,
-                device_info,
-                config_entry.entry_id,
-                "wifi_ssid",
-                lambda data: data.wifi_ssid(),
-                _UNKNOWN,
-            )
-        )
-        entities.append(
-            SimpleSensor(
-                coordinator,
-                device_info,
-                config_entry.entry_id,
-                "wifi_rssi",
-                lambda data: data.wifi_rssi(),
-                _WATER,
-            )
-        )
+        # Only expose the sensors requested for SmartDos devices
+        entities.append(WarningSensor(coordinator, device_info, config_entry.entry_id))
+        entities.append(ErrorSensor(coordinator, device_info, config_entry.entry_id))
+        # Device status
+        entities.append(SimpleSensor(coordinator, device_info, config_entry.entry_id, "state", lambda data: data.device_state(), _WATER_CHECK))
+        # Capacity: total (liters), percent and days
+        entities.append(UnitSensor(coordinator, device_info, config_entry.entry_id, "capacity_1", lambda data: data.capacity_1(), UnitOfVolume.LITERS, _GLASS, 0))
+        entities.append(UnitSensor(coordinator, device_info, config_entry.entry_id, "remaining_capacity_pct", lambda data: data.remaining_capacity_pct(), PERCENTAGE, _PERCENTAGE, 0))
+        entities.append(UnitSensor(coordinator, device_info, config_entry.entry_id, "remaining_capacity_days", lambda data: data.remaining_capacity_days(), UnitOfTime.DAYS, _DAYS_LEFT))
+        # Dosing info
+        entities.append(SimpleSensor(coordinator, device_info, config_entry.entry_id, "dosing_rate", lambda data: data.dosing_rate(), _OIL_LEVEL))
+        entities.append(UnitSensor(coordinator, device_info, config_entry.entry_id, "substance_dosage", lambda data: data.substance_dosage(), UnitOfVolume.MILLILITERS, _OIL_LEVEL, 0))
+        entities.append(UnitSensor(coordinator, device_info, config_entry.entry_id, "dosing_total", lambda data: data.dosing_total(), UnitOfVolume.MILLILITERS, _OIL_LEVEL, 0))
+        # Network
+        entities.append(SimpleSensor(coordinator, device_info, config_entry.entry_id, "wifi_ssid", lambda data: data.wifi_ssid(), _UNKNOWN))
+        entities.append(SimpleSensor(coordinator, device_info, config_entry.entry_id, "wifi_rssi", lambda data: data.wifi_rssi(), _UNKNOWN))
+        # MAC
+        entities.append(SimpleSensor(coordinator, device_info, config_entry.entry_id, "mac_address", lambda data: data.mac_address(), _UNKNOWN))
+        # Totals
+        entities.append(TotalOutputSensor(coordinator, device_info, config_entry.entry_id))
+        # Extras
+        entities.append(SimpleBinarySensor(coordinator, device_info, config_entry.entry_id, "buzzer", lambda data: data.buzzer(), _UNKNOWN))
+        entities.append(SimpleBinarySensor(coordinator, device_info, config_entry.entry_id, "aqa_watch", lambda data: data.aqa_watch(), _UNKNOWN))
+        entities.append(SimpleBinarySensor(coordinator, device_info, config_entry.entry_id, "aqa_max_flow", lambda data: data.aqa_max_flow(), _UNKNOWN))
+        entities.append(SimpleBinarySensor(coordinator, device_info, config_entry.entry_id, "aqa_max_volume", lambda data: data.aqa_max_volume(), _UNKNOWN))
+        
     elif model == BwtModel.PERLA_SILK:
         entities.append(
             DeviceClassSensor(

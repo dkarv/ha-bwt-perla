@@ -119,6 +119,32 @@ class SimpleSensor(BwtEntity, SensorEntity):
         self.async_write_ha_state()
 
 
+class SimpleBinarySensor(BwtEntity, BinarySensorEntity):
+    """Simple binary sensor with extract function."""
+
+    def __init__(
+        self,
+        coordinator: BwtCoordinator,
+        device_info: DeviceInfo,
+        entry_id: str,
+        key: str,
+        extract,
+        icon: str,
+    ) -> None:
+        """Initialize the binary sensor with the common coordinator."""
+        super().__init__(coordinator, device_info, entry_id, key)
+        self._attr_icon = icon
+        self._extract = extract
+        self._attr_is_on = self._extract(self.coordinator.data)
+
+    @callback
+    def _handle_coordinator_update(self) -> None:
+        """Handle updated data from the coordinator."""
+        self._attr_is_on = self._extract(self.coordinator.data)
+        self.async_write_ha_state()
+
+
+
 class DeviceClassSensor(SimpleSensor):
     """Basic sensor specifying a device class."""
 
