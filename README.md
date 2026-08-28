@@ -8,7 +8,7 @@ _BWT Perla integration repository for [HACS](https://github.com/custom-component
 
 For the setup a local network connection and the IP or hostname is needed. Supported devices:
 
-*BWT Perla One* and *BWT Perla Duplex*:
+*BWT Perla One/Duplex* and *BWT PerlaMAXX*:
 * Firmware with at least version 2.02xx [(more info)](#how-can-i-get-the-firmware-update)
 * Local API enabled in Settings > General > Connection
 * "Login-Code" sent to you by mail during registration [(more info)](#where-do-i-get-the-login-code)
