@@ -19,6 +19,18 @@
     },
     "entity": {
         "sensor": {
+            "aqa_max_flow": {
+                "name": "AQA max Durchsatz Alarm"
+            },
+            "aqa_max_volume": {
+                "name": "AQA max Volumen Alarm"
+            },
+            "aqa_watch": {
+                "name": "AQA Überwachung Alarm"
+            },
+            "buzzer": {
+                "name": "Signalton"
+            },
             "capacity_1": {
                 "name": "Verbleibende Kapazität Säule 1"
             },
@@ -57,6 +69,9 @@
             },
             "last_regeneration_2": {
                 "name": "Letzte Regeneration Säule 2"
+            },
+            "mac_address": {
+                "name": "MAC-Adresse"
             },
             "month_output": {
                 "name": "Wasserverbrauch aktueller Monat"
@@ -120,39 +135,6 @@
             },
             "wifi_rssi": {
                 "name": "WiFi Signalstärke"
-            },
-            "dosing_rate": {
-                "name": "Dosing rate"
-            },
-            "substance_dosage": {
-                "name": "Dosing substance amount"
-            },
-            "remaining_capacity_pct": {
-                "name": "Remaining capacity percent"
-            },
-            "remaining_capacity_days": {
-                "name": "Remaining capacity days"
-            },
-            "wifi_ssid": {
-                "name": "WiFi network name"
-            },
-            "wifi_rssi": {
-                "name": "Average WiFi signal strength"
-            },
-            "mac_address": {
-                "name": "MAC-Adresse"
-            },
-            "buzzer": {
-                "name": "Signalton"
-            },
-            "aqa_max_flow": {
-                "name": "AQA max Durchsatz Alarm"
-            },
-            "aqa_watch": {
-                "name": "AQA Überwachung Alarm"
-            },
-            "aqa_max_volume": {
-                "name": "AQA max Volumen Alarm"
             }
         }
     },
