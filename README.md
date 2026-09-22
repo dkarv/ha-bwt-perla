@@ -55,7 +55,7 @@ It might work with other device types that offer compatible local apis. Please o
 
 This is only relevant for *Perla One* and *Perla Duplex* devices. *Silk* devices in the UK do have different firmware versions. With the latest update, they are also supported with a limited set of entities.
 
-The firmware 2.02xx is currently rolling out to all devices. If your device does not have it yet, it can be requested through the customer service by mail and will be remotely installed on your device.
+The firmware 2.02xx is currently rolling out to all devices. If your device does not have it yet, it can be requested through the [customer service by mail](mailto:ProfilineAS@bwt.de) and will be remotely installed on your device. (Add S/N and Device type to the mail)
 
 For more details and recent news, check out the discussion in the [HomeAssistant forum](https://community.home-assistant.io/t/bwt-best-water-tech-nology-support/270745/9999).
 
