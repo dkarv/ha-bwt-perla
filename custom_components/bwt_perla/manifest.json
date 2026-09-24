@@ -1,7 +1,9 @@
 {
   "domain": "bwt_perla",
   "name": "BWT Perla",
-  "codeowners": ["@dkarv"],
+  "codeowners": [
+    "@dkarv"
+  ],
   "config_flow": true,
   "dependencies": [],
   "documentation": "https://github.com/dkarv/ha-bwt-perla/blob/main/README.md",
@@ -9,8 +11,10 @@
   "integration_type": "device",
   "iot_class": "local_polling",
   "issue_tracker": "https://github.com/dkarv/ha-bwt-perla/issues",
-  "requirements": ["bwt_api==1.0.4"],
+  "requirements": [
+    "bwt_api==1.0.4"
+  ],
   "ssdp": [],
-  "version": "0.8.4",
+  "version": "0.8.5",
   "zeroconf": []
 }
