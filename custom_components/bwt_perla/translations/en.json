@@ -53,7 +53,7 @@
                 "name": "Future start of holiday mode if available"
             },
             "last_regeneration_1": {
-                "name": "Last regeneration column 1"
+                "name": "Last / scheduled regeneration time"
             },
             "last_regeneration_2": {
                 "name": "Last regeneration column 2"
@@ -104,34 +104,16 @@
                 "name": "Last communication date"
             },
             "remaining_capacity_pct": {
-                "name": "Remaining capacity percentage"
+                "name": "Remaining capacity percent"
             },
             "remaining_capacity_days": {
                 "name": "Remaining capacity days"
-            },
-            "dosing_rate": {
-                "name": "Dosing rate"
-            },
-            "substance_dosage": {
-                "name": "Substance dosage"
-            },
-            "wifi_ssid": {
-                "name": "WiFi network name"
-            },
-            "wifi_rssi": {
-                "name": "WiFi signal strength"
             },
             "dosing_rate": {
                 "name": "Dosing rate"
             },
             "substance_dosage": {
                 "name": "Dosing substance amount"
-            },
-            "remaining_capacity_pct": {
-                "name": "Remaining capacity percent"
-            },
-            "remaining_capacity_days": {
-                "name": "Remaining capacity days"
             },
             "wifi_ssid": {
                 "name": "WiFi network name"
@@ -153,6 +135,36 @@
             },
             "aqa_max_volume": {
                 "name": "AQA max volume alert"
+            },
+            "firmware_version": {
+                "name": "Firmware version"
+            },
+            "device_clock": {
+                "name": "Device clock"
+            },
+            "avg_daily_output": {
+                "name": "Average daily output"
+            },
+            "salt_capacity_kg": {
+                "name": "Salt capacity"
+            },
+            "salt_remaining_kg": {
+                "name": "Salt remaining"
+            },
+            "fill_duration": {
+                "name": "Fill duration"
+            },
+            "dwell_duration": {
+                "name": "Dwell duration"
+            },
+            "brine_duration": {
+                "name": "Brine duration"
+            },
+            "backwash_duration": {
+                "name": "Backwash duration"
+            },
+            "rinse_duration": {
+                "name": "Rinse duration"
             }
         }
     },

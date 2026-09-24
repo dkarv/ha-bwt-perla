@@ -281,7 +281,7 @@ class CalculatedWaterSensor(BwtEntity, SensorEntity):
 
 
 class UnknownSensor(BwtEntity, SensorEntity):
-    """Unknown sensor for debugging."""
+    """Raw Silk register sensor (named when mapping is known)."""
 
     def __init__(
         self,
@@ -289,11 +289,21 @@ class UnknownSensor(BwtEntity, SensorEntity):
         device_info: DeviceInfo,
         entry_id: str,
         index: int,
+        friendly_name: str | None = None,
+        unit: str | None = None,
+        icon: str = _UNKNOWN,
     ) -> None:
         """Initialize the sensor with the common coordinator."""
         super().__init__(coordinator, device_info, entry_id, f"silk_register_{index}")
         self._index = index
-        self._attr_icon = _UNKNOWN
+        self._attr_icon = icon
+        if friendly_name:
+            # Override translation so UI shows the mapped name.
+            self._attr_translation_key = None
+            self._attr_name = friendly_name
+            self._attr_has_entity_name = True
+        if unit:
+            self._attr_native_unit_of_measurement = unit
         self._attr_native_value = coordinator.data.get_register(index)
 
     @callback
@@ -301,4 +311,4 @@ class UnknownSensor(BwtEntity, SensorEntity):
         """Handle updated data from the coordinator."""
         self._attr_native_value = self.coordinator.data.get_register(self._index)
         self.async_write_ha_state()
-        
+

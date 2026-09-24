@@ -65,7 +65,7 @@
                 "name": "Zukünftiger Start des Urlaubsmodus"
             },
             "last_regeneration_1": {
-                "name": "Letzte Regeneration Säule 1"
+                "name": "Letzte / geplante Regenerationszeit"
             },
             "last_regeneration_2": {
                 "name": "Letzte Regeneration Säule 2"
@@ -135,6 +135,36 @@
             },
             "wifi_rssi": {
                 "name": "WiFi Signalstärke"
+            },
+            "firmware_version": {
+                "name": "Firmwareversion"
+            },
+            "device_clock": {
+                "name": "Geräteuhr"
+            },
+            "avg_daily_output": {
+                "name": "Durchschnittlicher Tagesverbrauch"
+            },
+            "salt_capacity_kg": {
+                "name": "Salzkapazität"
+            },
+            "salt_remaining_kg": {
+                "name": "Salzrestmenge"
+            },
+            "fill_duration": {
+                "name": "Fülldauer"
+            },
+            "dwell_duration": {
+                "name": "Verweilzeit"
+            },
+            "brine_duration": {
+                "name": "Solezeit"
+            },
+            "backwash_duration": {
+                "name": "Rückspüldauer"
+            },
+            "rinse_duration": {
+                "name": "Spüldauer"
             }
         }
     },

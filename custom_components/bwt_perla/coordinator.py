@@ -56,7 +56,9 @@ class BwtCoordinator(DataUpdateCoordinator[ApiData]):
                 if self.model == BwtModel.PERLA_LOCAL_API:
                     new_values = LocalApiData(await self.my_api.get_current_data())
                 elif self.model == BwtModel.PERLA_SILK:
-                    new_values = SilkApiData(await self.my_api.get_registers())
+                    registers = await self.my_api.get_registers()
+                    status = await self._fetch_silk_status()
+                    new_values = SilkApiData(registers, status)
                 elif self.model == BwtModel.SMART_DOS:
                     device_info = await self.my_api.get_device_info()
                     configuration = await self.my_api.get_configuration()
@@ -85,6 +87,23 @@ class BwtCoordinator(DataUpdateCoordinator[ApiData]):
         )
         return new_values
 
+    async def _fetch_silk_status(self) -> dict:
+        """Fetch /silk/status for firmware / product metadata."""
+        try:
+            session = self.my_api._session  # noqa: SLF001
+            host = self.my_api._host  # noqa: SLF001
+            async with session.get(f"http://{host}:80/silk/status") as response:
+                if response.status == 200:
+                    return await response.json(content_type=None)
+                _LOGGER.warning(
+                    "Silk status HTTP %s: %s",
+                    response.status,
+                    await response.text(),
+                )
+        except Exception as err:  # noqa: BLE001
+            _LOGGER.debug("Could not fetch /silk/status: %s", err)
+        return {}
+
     def get_model_suffix(self) -> str:
         """Get the model suffix based on the number of columns."""
         if self.model == BwtModel.PERLA_LOCAL_API:
@@ -101,13 +120,17 @@ class BwtCoordinator(DataUpdateCoordinator[ApiData]):
             return self.data.firmware_version()
         if self.model == BwtModel.SMART_DOS:
             return self.data.firmware_version()
+        if self.model == BwtModel.PERLA_SILK and hasattr(self.data, "firmware_version"):
+            return self.data.firmware_version()
         return "Unknown"
 
     def get_hardware_version(self) -> Optional[str]:
         """Get the hardware version when available."""
-        if hasattr(self.data, 'hardware_version'):
+        if hasattr(self.data, "hardware_version"):
             hw_version = self.data.hardware_version()
             return hw_version if hw_version else None
+        if self.model == BwtModel.PERLA_SILK and hasattr(self.data, "product_code"):
+            return self.data.product_code()
         return None
 
 

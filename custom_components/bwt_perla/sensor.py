@@ -302,6 +302,8 @@ async def async_setup_entry(
         entities.append(SimpleBinarySensor(coordinator, device_info, config_entry.entry_id, "aqa_max_volume", lambda data: data.aqa_max_volume(), _UNKNOWN))
         
     elif model == BwtModel.PERLA_SILK:
+        from .data.silk import REGISTER_NAMES, UNKNOWN_REGISTER_INDEXES
+
         entities.append(
             DeviceClassSensor(
                 coordinator,
@@ -333,13 +335,136 @@ async def async_setup_entry(
                 _WRENCH_PERSON,
             )
         )
-        for index in [0, 1, 5, 6, 9, 12, 20, 21, 22, 24, 29, 32, 33, 35, 36, 37, 38, 39, 40, 41, 42, 44, 45, 46, 47]:
+        entities.append(
+            SimpleSensor(
+                coordinator,
+                device_info,
+                config_entry.entry_id,
+                "firmware_version",
+                lambda data: data.firmware_version(),
+                "mdi:chip",
+            )
+        )
+        entities.append(
+            SimpleSensor(
+                coordinator,
+                device_info,
+                config_entry.entry_id,
+                "device_clock",
+                lambda data: data.device_clock(),
+                "mdi:clock-outline",
+            )
+        )
+        entities.append(
+            SimpleSensor(
+                coordinator,
+                device_info,
+                config_entry.entry_id,
+                "last_regeneration_1",
+                lambda data: data.last_regeneration_time(),
+                "mdi:clock-check-outline",
+            )
+        )
+        entities.append(
+            UnitSensor(
+                coordinator,
+                device_info,
+                config_entry.entry_id,
+                "avg_daily_output",
+                lambda data: data.avg_daily_output(),
+                UnitOfVolume.LITERS,
+                "mdi:chart-bell-curve-cumulative",
+                0,
+            )
+        )
+        entities.append(
+            UnitSensor(
+                coordinator,
+                device_info,
+                config_entry.entry_id,
+                "salt_capacity_kg",
+                lambda data: data.salt_capacity(),
+                UnitOfMass.KILOGRAMS,
+                "mdi:shaker-outline",
+                1,
+            )
+        )
+        entities.append(
+            UnitSensor(
+                coordinator,
+                device_info,
+                config_entry.entry_id,
+                "salt_remaining_kg",
+                lambda data: data.salt_remaining(),
+                UnitOfMass.KILOGRAMS,
+                "mdi:shaker",
+                1,
+            )
+        )
+        entities.append(
+            UnitSensor(
+                coordinator,
+                device_info,
+                config_entry.entry_id,
+                "fill_duration",
+                lambda data: data.get_register(24),
+                UnitOfTime.MINUTES,
+                _TIME,
+            )
+        )
+        entities.append(
+            UnitSensor(
+                coordinator,
+                device_info,
+                config_entry.entry_id,
+                "dwell_duration",
+                lambda data: data.get_register(25),
+                UnitOfTime.MINUTES,
+                _TIME,
+            )
+        )
+        entities.append(
+            UnitSensor(
+                coordinator,
+                device_info,
+                config_entry.entry_id,
+                "brine_duration",
+                lambda data: data.get_register(26),
+                UnitOfTime.MINUTES,
+                _TIME,
+            )
+        )
+        entities.append(
+            UnitSensor(
+                coordinator,
+                device_info,
+                config_entry.entry_id,
+                "backwash_duration",
+                lambda data: data.get_register(27),
+                UnitOfTime.MINUTES,
+                _TIME,
+            )
+        )
+        entities.append(
+            UnitSensor(
+                coordinator,
+                device_info,
+                config_entry.entry_id,
+                "rinse_duration",
+                lambda data: data.get_register(28),
+                UnitOfTime.MINUTES,
+                _TIME,
+            )
+        )
+        for index in UNKNOWN_REGISTER_INDEXES:
             entities.append(
                 UnknownSensor(
                     coordinator,
                     device_info,
                     config_entry.entry_id,
-                    index
+                    index,
+                    friendly_name=REGISTER_NAMES.get(index),
+                    unit=None,
                 )
             )
 
