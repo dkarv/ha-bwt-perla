@@ -57,7 +57,12 @@ class BwtCoordinator(DataUpdateCoordinator[ApiData]):
                     new_values = LocalApiData(await self.my_api.get_current_data())
                 elif self.model == BwtModel.PERLA_SILK:
                     registers = await self.my_api.get_registers()
-                    status = await self._fetch_silk_status()
+                    try:
+                        status = await self.my_api.get_status()
+                    except BwtException as err:
+                        # Firmware metadata is optional; keep register polling working.
+                        _LOGGER.debug("Could not fetch /silk/status: %s", err)
+                        status = {}
                     new_values = SilkApiData(registers, status)
                 elif self.model == BwtModel.SMART_DOS:
                     device_info = await self.my_api.get_device_info()
@@ -86,23 +91,6 @@ class BwtCoordinator(DataUpdateCoordinator[ApiData]):
             self.update_interval, new_values.current_flow()
         )
         return new_values
-
-    async def _fetch_silk_status(self) -> dict:
-        """Fetch /silk/status for firmware / product metadata."""
-        try:
-            session = self.my_api._session  # noqa: SLF001
-            host = self.my_api._host  # noqa: SLF001
-            async with session.get(f"http://{host}:80/silk/status") as response:
-                if response.status == 200:
-                    return await response.json(content_type=None)
-                _LOGGER.warning(
-                    "Silk status HTTP %s: %s",
-                    response.status,
-                    await response.text(),
-                )
-        except Exception as err:  # noqa: BLE001
-            _LOGGER.debug("Could not fetch /silk/status: %s", err)
-        return {}
 
     def get_model_suffix(self) -> str:
         """Get the model suffix based on the number of columns."""
@@ -134,10 +122,10 @@ class BwtCoordinator(DataUpdateCoordinator[ApiData]):
         return None
 
 
-def calculate_update_interval(current_interval: timedelta | None, current_flow: int):
+def calculate_update_interval(current_interval: timedelta | None, current_flow: int | None):
     """Calculate the new update interval, based on the old one and the current flow."""
 
-    if current_flow > 0:
+    if current_flow is not None and current_flow > 0:
         return timedelta(seconds=_UPDATE_INTERVAL_MIN)
     if current_interval is None:
         return timedelta(seconds=_UPDATE_INTERVAL_MAX)

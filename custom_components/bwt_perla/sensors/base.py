@@ -83,14 +83,18 @@ class CurrentFlowSensor(BwtEntity, SensorEntity):
     def __init__(self, coordinator, device_info, entry_id) -> None:
         """Initialize the sensor with the common coordinator."""
         super().__init__(coordinator, device_info, entry_id, "current_flow")
-        self._attr_native_value = coordinator.data.current_flow() / 1000.0
+        self._attr_native_value = self._flow_m3h(coordinator.data.current_flow())
         self._attr_suggested_display_precision = 3
+
+    @staticmethod
+    def _flow_m3h(flow_lh: int | None) -> float | None:
+        # HA only has m³/h; API values are L/h.
+        return None if flow_lh is None else flow_lh / 1000.0
 
     @callback
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""
-        # HA only has m3 / h, we get the values in l/h
-        self._attr_native_value = self.coordinator.data.current_flow() / 1000.0
+        self._attr_native_value = self._flow_m3h(self.coordinator.data.current_flow())
         self.async_write_ha_state()
 
 
