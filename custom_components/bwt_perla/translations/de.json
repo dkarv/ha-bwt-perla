@@ -139,9 +139,6 @@
             "firmware_version": {
                 "name": "Firmwareversion"
             },
-            "device_clock": {
-                "name": "Geräteuhr"
-            },
             "avg_daily_output": {
                 "name": "Durchschnittlicher Tagesverbrauch"
             },

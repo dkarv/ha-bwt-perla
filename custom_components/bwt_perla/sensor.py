@@ -350,16 +350,6 @@ async def async_setup_entry(
                 coordinator,
                 device_info,
                 config_entry.entry_id,
-                "device_clock",
-                lambda data: data.device_clock(),
-                "mdi:clock-outline",
-            )
-        )
-        entities.append(
-            SimpleSensor(
-                coordinator,
-                device_info,
-                config_entry.entry_id,
                 "last_regeneration_1",
                 lambda data: data.last_regeneration_time(),
                 "mdi:clock-check-outline",

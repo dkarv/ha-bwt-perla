@@ -21,44 +21,50 @@ class SilkApiData(ApiData):
         self._registers = registers
         self._status = status or {}
 
-    def current_flow(self) -> int:
-        return self.get_register(CURRENT_FLOW_RATE) * 60  # L/min-ish raw → L/h
+    def current_flow(self) -> int | None:
+        raw = self.get_register(CURRENT_FLOW_RATE)
+        return None if raw is None else raw * 60  # raw → L/h
 
-    def total_output(self) -> int:
-        return self.get_register(TOTAL_WATER_SERVED) * 100
+    def total_output(self) -> int | None:
+        raw = self.get_register(TOTAL_WATER_SERVED)
+        return None if raw is None else raw * 100
 
     def hardness_in(self):
         return self.get_register(WATER_HARDNESS)
 
-    def next_customer_service(self) -> datetime:
-        service_days = self.get_register(DAYS_UNTIL_SERVICE) or 0
+    def next_customer_service(self) -> datetime | None:
+        service_days = self.get_register(DAYS_UNTIL_SERVICE)
+        if service_days is None:
+            return None
         return (datetime.now().astimezone() + timedelta(days=service_days)).replace(
             hour=0, minute=0, second=0, microsecond=0
         )
 
-    def regenerativ_level(self) -> int:
-        cap = self.get_register(REGENERATIV_CAPACITY) or 0
-        rem = self.get_register(REGENERATIV_REMAINING) or 0
-        if cap <= 0:
-            return 0
+    def regenerativ_level(self) -> int | None:
+        cap = self.get_register(REGENERATIV_CAPACITY)
+        rem = self.get_register(REGENERATIV_REMAINING)
+        if cap is None or rem is None or cap <= 0:
+            return None
         return int(rem / cap * 100)
 
-    def day_output(self) -> int:
+    def day_output(self) -> int | None:
         return self.get_register(DAILY_WATER_USAGE)
 
-    def capacity_1(self) -> int:
+    def capacity_1(self) -> int | None:
         return self.get_register(REMAINING_CAPACITY)
 
-    def days_in_service(self) -> int:
+    def days_in_service(self) -> int | None:
         return self.get_register(DAYS_IN_SERVICE)
 
-    def warranty_end(self) -> datetime:
-        warranty_days = self.get_register(WARRANTY_DAYS_REMAINING) or 0
+    def warranty_end(self) -> datetime | None:
+        warranty_days = self.get_register(WARRANTY_DAYS_REMAINING)
+        if warranty_days is None:
+            return None
         return (datetime.now().astimezone() + timedelta(days=warranty_days)).replace(
             hour=0, minute=0, second=0, microsecond=0
         )
 
-    def regeneration_count_1(self) -> int:
+    def regeneration_count_1(self) -> int | None:
         return self.get_register(TOTAL_NUMBER_OF_RECHARGES)
 
     def firmware_version(self) -> str:
@@ -87,13 +93,6 @@ class SilkApiData(ApiData):
     def last_regeneration_time(self) -> str | None:
         hour = self.get_register(LAST_REGENERATION_HOUR)
         minute = self.get_register(LAST_REGENERATION_MINUTE)
-        if hour is None or minute is None or hour < 0 or minute < 0:
-            return None
-        return f"{hour:02d}:{minute:02d}"
-
-    def device_clock(self) -> str | None:
-        hour = self.get_register(CURRENT_HOUR)
-        minute = self.get_register(CURRENT_MINUTE)
         if hour is None or minute is None or hour < 0 or minute < 0:
             return None
         return f"{hour:02d}:{minute:02d}"

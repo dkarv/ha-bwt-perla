@@ -136,9 +136,6 @@
             "firmware_version": {
                 "name": "Firmware version"
             },
-            "device_clock": {
-                "name": "Device clock"
-            },
             "avg_daily_output": {
                 "name": "Average daily output"
             },
