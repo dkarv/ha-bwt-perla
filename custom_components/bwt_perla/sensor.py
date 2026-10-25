@@ -75,7 +75,6 @@ async def async_setup_entry(
         serial_number=None,
         suggested_area=None,
         sw_version=coordinator.get_firmware_version(),
-        via_device=None,
     )
 
     # Build base entity list: SmartDos has its own set, Perla models share common ones
