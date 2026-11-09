@@ -325,12 +325,13 @@ async def async_setup_entry(
             )
         )
         entities.append(
-            SimpleSensor(
+            DeviceClassSensor(
                 coordinator,
                 device_info,
                 config_entry.entry_id,
                 "warranty_end",
                 lambda data: data.warranty_end(),
+                SensorDeviceClass.TIMESTAMP,
                 _WRENCH_PERSON,
             )
         )

@@ -1,17 +1,28 @@
 {
     "config": {
         "abort": {
-            "already_configured": "Device is already configured"
+            "already_configured": "Device is already configured",
+            "reconfiguration_successful": "Device was reconfigured successfully"
         },
         "error": {
             "cannot_connect": "Failed to connect",
             "invalid_code_or_api_disabled": "Invalid code or local API not enabled. Please check: 1) Device firmware is version 2.02xx or later, 2) Local API is enabled in device Settings > General > Connection, 3) Login code is correct (sent via email during registration)",
-            "unknown": "Unexpected error"
+            "unknown": "Unexpected error",
+            "unsupported_model": "Unsupported BWT model"
         },
         "step": {
+            "code": {
+                "data": {
+                    "code": "User-Code"
+                }
+            },
+            "reconfigure": {
+                "data": {
+                    "host": "Host"
+                }
+            },
             "user": {
                 "data": {
-                    "code": "User-Code",
                     "host": "Host"
                 }
             }
@@ -23,7 +34,7 @@
                 "name": "Remaining capacity of column 1"
             },
             "capacity_2": {
-                "name": "Remaining capacity of column 1"
+                "name": "Remaining capacity of column 2"
             },
             "counter_regeneration_1": {
                 "name": "Regeneration counter column 1"
@@ -75,6 +86,9 @@
             },
             "technician_service": {
                 "name": "Last service by technician"
+            },
+            "warranty_end": {
+                "name": "Warranty end date"
             },
             "total_output": {
                 "name": "Total water consumption"
