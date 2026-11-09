@@ -94,9 +94,6 @@
             "year_output": {
                 "name": "Output of current year"
             },
-            "holiday_mode": {
-                "name": "Holiday mode active"
-            },
             "next_customer_service": {
                 "name": "Service agreement end date"
             },
@@ -132,18 +129,6 @@
             },
             "mac_address": {
                 "name": "MAC address"
-            },
-            "buzzer": {
-                "name": "Buzzer"
-            },
-            "aqa_max_flow": {
-                "name": "AQA max flow alert"
-            },
-            "aqa_watch": {
-                "name": "AQA watch alert"
-            },
-            "aqa_max_volume": {
-                "name": "AQA max volume alert"
             },
             "firmware_version": {
                 "name": "Firmware version"
@@ -250,6 +235,23 @@
             "silk_register_47": {
                 "name": "Register 47"
             }
+        },
+        "binary_sensor": {
+            "holiday_mode": {
+                "name": "Holiday mode active"
+            },
+            "buzzer": {
+                "name": "Buzzer"
+            },
+            "aqa_watch": {
+                "name": "AQA watch alert"
+            },
+            "aqa_max_flow": {
+                "name": "AQA max flow alert"
+            },
+            "aqa_max_volume": {
+                "name": "AQA max volume alert"
+            }
         }
     },
     "entity_component": {
@@ -312,6 +314,12 @@
                 "error_pump_power_fault": "Pump power fault",
                 "error_pump_control_fault": "Pump control fault"
             }
+        }
+    },
+    "issues": {
+        "binary_sensors_moved": {
+            "title": "Binary sensors moved to the binary_sensor domain",
+            "description": "The following entities of {title} are now binary sensors and their entity IDs changed:\n\n{entities}\n\nTheir history is not carried over to the new entity IDs. Automations, scripts, dashboards and templates that reference the old entity IDs need to be updated manually. This notice can be ignored once that is done."
         }
     }
 }

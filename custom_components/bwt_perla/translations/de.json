@@ -28,18 +28,6 @@
     },
     "entity": {
         "sensor": {
-            "aqa_max_flow": {
-                "name": "AQA max Durchsatz Alarm"
-            },
-            "aqa_max_volume": {
-                "name": "AQA max Volumen Alarm"
-            },
-            "aqa_watch": {
-                "name": "AQA Überwachung Alarm"
-            },
-            "buzzer": {
-                "name": "Signalton"
-            },
             "capacity_1": {
                 "name": "Verbleibende Kapazität Säule 1"
             },
@@ -108,9 +96,6 @@
             },
             "year_output": {
                 "name": "Wasserverbrauch aktuelles Jahr"
-            },
-            "holiday_mode": {
-                "name": "Urlaubsmodus aktiv"
             },
             "next_customer_service": {
                 "name": "Servicevereinbarung Enddatum"
@@ -250,6 +235,23 @@
             "silk_register_47": {
                 "name": "Register 47"
             }
+        },
+        "binary_sensor": {
+            "holiday_mode": {
+                "name": "Urlaubsmodus aktiv"
+            },
+            "buzzer": {
+                "name": "Signalton"
+            },
+            "aqa_watch": {
+                "name": "AQA Überwachung Alarm"
+            },
+            "aqa_max_flow": {
+                "name": "AQA max Durchsatz Alarm"
+            },
+            "aqa_max_volume": {
+                "name": "AQA max Volumen Alarm"
+            }
         }
     },
     "entity_component": {
@@ -312,6 +314,12 @@
                 "error_pump_power_fault": "Pumpenstromfehler",
                 "error_pump_control_fault": "Pumpensteuerungsfehler"
             }
+        }
+    },
+    "issues": {
+        "binary_sensors_moved": {
+            "title": "Binärsensoren wurden in die Domain binary_sensor verschoben",
+            "description": "Die folgenden Entitäten von {title} sind jetzt Binärsensoren und ihre Entity-IDs haben sich geändert:\n\n{entities}\n\nDer Verlauf wird nicht auf die neuen Entity-IDs übertragen. Automatisierungen, Skripte, Dashboards und Templates, die die alten Entity-IDs verwenden, müssen manuell angepasst werden. Dieser Hinweis kann ignoriert werden, sobald das erledigt ist."
         }
     }
 }

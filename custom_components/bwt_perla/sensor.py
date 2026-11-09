@@ -50,21 +50,7 @@ async def async_setup_entry(
     coordinator = config_entry.runtime_data
     model = coordinator.model
 
-    model_suffix = coordinator.get_model_suffix()
-    device_info = DeviceInfo(
-        configuration_url=None,
-        connections=set(),
-        entry_type=None,
-        hw_version=coordinator.get_hardware_version(),
-        identifiers={(DOMAIN, config_entry.entry_id)},
-        manufacturer="BWT",
-        # SmartDos is a separate product line, not a Perla variant.
-        model=model_suffix if model == BwtModel.SMART_DOS else f"Perla {model_suffix}",
-        name=config_entry.title,
-        serial_number=None,
-        suggested_area=None,
-        sw_version=coordinator.get_firmware_version(),
-    )
+    device_info = build_device_info(coordinator, config_entry)
 
     # Build base entity list: SmartDos has its own set, Perla models share common ones
     if model == BwtModel.SMART_DOS:
@@ -176,9 +162,6 @@ async def async_setup_entry(
             )
         )
         entities.append(
-            HolidayModeSensor(coordinator, device_info, config_entry.entry_id)
-        )
-        entities.append(
             HolidayStartSensor(coordinator, device_info,
                                config_entry.entry_id),
         )
@@ -287,11 +270,6 @@ async def async_setup_entry(
         entities.append(SimpleSensor(coordinator, device_info, config_entry.entry_id, "mac_address", lambda data: data.mac_address(), _UNKNOWN, entity_category=EntityCategory.DIAGNOSTIC))
         # Totals
         entities.append(TotalOutputSensor(coordinator, device_info, config_entry.entry_id))
-        # Extras
-        entities.append(SimpleBinarySensor(coordinator, device_info, config_entry.entry_id, "buzzer", lambda data: data.buzzer(), _UNKNOWN, entity_category=EntityCategory.DIAGNOSTIC))
-        entities.append(SimpleBinarySensor(coordinator, device_info, config_entry.entry_id, "aqa_watch", lambda data: data.aqa_watch(), _UNKNOWN, entity_category=EntityCategory.DIAGNOSTIC))
-        entities.append(SimpleBinarySensor(coordinator, device_info, config_entry.entry_id, "aqa_max_flow", lambda data: data.aqa_max_flow(), _UNKNOWN, entity_category=EntityCategory.DIAGNOSTIC))
-        entities.append(SimpleBinarySensor(coordinator, device_info, config_entry.entry_id, "aqa_max_volume", lambda data: data.aqa_max_volume(), _UNKNOWN, entity_category=EntityCategory.DIAGNOSTIC))
         
     elif model == BwtModel.PERLA_SILK:
         from .data.silk import UNKNOWN_REGISTER_INDEXES

@@ -18,7 +18,7 @@ from custom_components.bwt_perla.coordinator import BwtCoordinator
 def _entry():
     return MockConfigEntry(
         domain=DOMAIN,
-        version=3,
+        version=4,
         title="BWT Perla One",
         data={
             CONF_HOST: "192.168.1.50",

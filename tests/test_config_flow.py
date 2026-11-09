@@ -43,7 +43,7 @@ def _entry(**kwargs):
         CONF_CODE: "old-code",
         "model": BwtModel.PERLA_LOCAL_API.name,
     }
-    return MockConfigEntry(domain=DOMAIN, version=3, data=data, title="BWT Perla One", **kwargs)
+    return MockConfigEntry(domain=DOMAIN, version=4, data=data, title="BWT Perla One", **kwargs)
 
 
 async def test_user_flow_local_api(hass):
@@ -233,7 +233,7 @@ async def test_reauth_non_local_model_aborts(hass):
 async def test_duplicate_host_aborts(hass):
     """A second flow for an already configured host aborts."""
     MockConfigEntry(
-        domain=DOMAIN, version=3, unique_id=HOST, data={CONF_HOST: HOST}
+        domain=DOMAIN, version=4, unique_id=HOST, data={CONF_HOST: HOST}
     ).add_to_hass(hass)
     result = await hass.config_entries.flow.async_init(
         DOMAIN, context={"source": config_entries.SOURCE_USER}

@@ -32,7 +32,7 @@ HOLIDAY_EPOCH = 1_900_000_000
 def _entry(model: BwtModel, **extra):
     data = {CONF_HOST: HOST, "model": model.name, **extra}
     return MockConfigEntry(
-        domain=DOMAIN, version=3, title="BWT", data=data, unique_id=HOST
+        domain=DOMAIN, version=4, title="BWT", data=data, unique_id=HOST
     )
 
 
@@ -131,9 +131,9 @@ async def _setup_local(hass, holiday_mode=HOLIDAY_EPOCH):
     return entry
 
 
-def _reg(hass, entry, key):
+def _reg(hass, entry, key, domain="sensor"):
     registry = er.async_get(hass)
-    entity_id = registry.async_get_entity_id("sensor", DOMAIN, f"{entry.entry_id}_{key}")
+    entity_id = registry.async_get_entity_id(domain, DOMAIN, f"{entry.entry_id}_{key}")
     assert entity_id, key
     return registry.async_get(entity_id)
 
@@ -171,7 +171,8 @@ async def test_smartdos_categories_and_rssi(hass):
 
     for key in ("wifi_ssid", "wifi_rssi", "mac_address",
                 "buzzer", "aqa_watch", "aqa_max_flow", "aqa_max_volume"):
-        reg = _reg(hass, entry, key)
+        domain = "sensor" if key in ("wifi_ssid", "wifi_rssi", "mac_address") else "binary_sensor"
+        reg = _reg(hass, entry, key, domain)
         assert reg.entity_category is EntityCategory.DIAGNOSTIC, key
         assert reg.disabled_by is None, key
 

@@ -73,7 +73,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     """Handle a config flow for BWT Perla."""
 
     VERSION = 3
-    MINOR_VERSION = 2
+    MINOR_VERSION = 3
 
     async def _async_set_unique_id(self, host: str) -> None:
         """Key the entry on the host (bwt_api exposes no device id for all models)."""
