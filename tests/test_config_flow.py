@@ -228,3 +228,36 @@ async def test_reauth_non_local_model_aborts(hass):
     assert result["type"] is FlowResultType.ABORT
     assert result["reason"] == "reauth_unsupported_model"
     assert entry.data[CONF_CODE] == "old-code"
+
+
+async def test_duplicate_host_aborts(hass):
+    """A second flow for an already configured host aborts."""
+    MockConfigEntry(
+        domain=DOMAIN, version=3, unique_id=HOST, data={CONF_HOST: HOST}
+    ).add_to_hass(hass)
+    result = await hass.config_entries.flow.async_init(
+        DOMAIN, context={"source": config_entries.SOURCE_USER}
+    )
+    with _patch_model(BwtModel.PERLA_SILK), patch(
+        "custom_components.bwt_perla.config_flow.BwtSilkApi", return_value=_mock_api()
+    ):
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"], {CONF_HOST: HOST.upper()}
+        )
+    assert result["type"] is FlowResultType.ABORT
+    assert result["reason"] == "already_configured"
+
+
+async def test_created_entry_has_unique_id(hass):
+    """New entries are keyed on the host."""
+    result = await hass.config_entries.flow.async_init(
+        DOMAIN, context={"source": config_entries.SOURCE_USER}
+    )
+    with _patch_model(BwtModel.PERLA_SILK), patch(
+        "custom_components.bwt_perla.config_flow.BwtSilkApi", return_value=_mock_api()
+    ), patch("custom_components.bwt_perla.async_setup_entry", return_value=True):
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"], {CONF_HOST: HOST}
+        )
+    assert result["type"] is FlowResultType.CREATE_ENTRY
+    assert result["result"].unique_id == HOST

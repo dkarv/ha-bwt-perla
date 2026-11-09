@@ -4,25 +4,23 @@ import logging
 
 from bwt_api.api import BwtApi, BwtSilkApi, BwtSmartDosApi
 from bwt_api.bwt import BwtModel
-from bwt_api.exception import WrongCodeException
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import Platform, CONF_CODE, CONF_HOST
 from homeassistant.core import HomeAssistant, callback
-from homeassistant.exceptions import ConfigEntryAuthFailed, ConfigEntryNotReady
+from homeassistant.exceptions import ConfigEntryNotReady
 from homeassistant.helpers.entity_registry import async_migrate_entries
 from homeassistant.helpers import entity_registry as er
 
-from .const import DOMAIN
+from .coordinator import BwtConfigEntry, BwtCoordinator
 
 _LOGGER = logging.getLogger(__name__)
 PLATFORMS: list[Platform] = [Platform.SENSOR]
 
 
-async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
+async def async_setup_entry(hass: HomeAssistant, entry: BwtConfigEntry) -> bool:
     """Set up BWT Perla from a config entry."""
 
-    hass.data.setdefault(DOMAIN, {})
     # Backwards compatibility: older config entries may not have a `model` key.
     model_value = entry.data.get("model")
     if model_value is None:
@@ -34,43 +32,46 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         new_data["model"] = model_value
         hass.config_entries.async_update_entry(entry, data=new_data)
 
+    # Entries created before unique ids were introduced are keyed on their host.
+    if entry.unique_id is None:
+        hass.config_entries.async_update_entry(
+            entry, unique_id=entry.data[CONF_HOST].lower()
+        )
+
     lib_logger = _LOGGER.getChild("bwt_api")
     if model_value == BwtModel.PERLA_LOCAL_API.name:
+        model = BwtModel.PERLA_LOCAL_API
         api = BwtApi(entry.data["host"], entry.data.get("code"), lib_logger)
     elif model_value == BwtModel.PERLA_SILK.name:
+        model = BwtModel.PERLA_SILK
         api = BwtSilkApi(entry.data["host"], lib_logger)
     elif model_value == BwtModel.SMART_DOS.name:
+        model = BwtModel.SMART_DOS
         api = BwtSmartDosApi(entry.data["host"], lib_logger)
     else:
-        raise ConfigEntryNotReady(f"Unsupported BWT model: {entry.data.get('model')}")
+        raise ConfigEntryNotReady(f"Unsupported BWT model: {model_value}")
 
+    coordinator = BwtCoordinator(hass, entry, api, model)
     try:
-        if entry.data.get("model") == BwtModel.PERLA_LOCAL_API.name:
-            await api.get_current_data()
-        elif entry.data.get("model") == BwtModel.PERLA_SILK.name:
-            await api.get_registers()
-        elif entry.data.get("model") == BwtModel.SMART_DOS.name:
-            await api.get_gatt_0201()
-    except WrongCodeException as e:
-        await api.close()
-        raise ConfigEntryAuthFailed("Invalid login code") from e
+        # Raises ConfigEntryAuthFailed (starting reauth) on a rejected login
+        # code and ConfigEntryNotReady on any other failure.
+        await coordinator.async_config_entry_first_refresh()
     except Exception as e:
         _LOGGER.debug("Error connecting to BWT device at %s: %s", entry.data["host"], e)
         await api.close()
-        raise ConfigEntryNotReady from e
+        raise
 
-    hass.data[DOMAIN][entry.entry_id] = api
+    entry.runtime_data = coordinator
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
     return True
 
 
-async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
+async def async_unload_entry(hass: HomeAssistant, entry: BwtConfigEntry) -> bool:
     """Unload a config entry."""
     if unload_ok := await hass.config_entries.async_unload_platforms(entry, PLATFORMS):
-        api = hass.data[DOMAIN].pop(entry.entry_id)
-        await api.close()
+        await entry.runtime_data.my_api.close()
 
     return unload_ok
 
