@@ -13,6 +13,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryAuthFailed
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
+from .const import DOMAIN
 from .data.data import ApiData
 from .data.local import LocalApiData
 from .data.silk import SilkApiData
@@ -34,7 +35,7 @@ class BwtCoordinator(DataUpdateCoordinator[ApiData]):
             hass,
             _LOGGER,
             # Name of the data. For logging purposes.
-            name="My sensor",
+            name=DOMAIN,
             # Polling interval. Will only be polled if there are subscribers.
             update_interval=timedelta(seconds=_UPDATE_INTERVAL_MAX),
         )
