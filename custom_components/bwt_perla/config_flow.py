@@ -73,11 +73,28 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     """Handle a config flow for BWT Perla."""
 
     VERSION = 3
+    MINOR_VERSION = 2
 
     async def _async_set_unique_id(self, host: str) -> None:
         """Key the entry on the host (bwt_api exposes no device id for all models)."""
         await self.async_set_unique_id(host.lower())
         self._abort_if_unique_id_configured()
+
+    def _async_finish_reconfigure(self, data: dict[str, Any]) -> FlowResult:
+        """Store the new data and re-key the entry on the (possibly new) host."""
+        current = self._get_reconfigure_entry()
+        unique_id = data[CONF_HOST].lower()
+        other = self.hass.config_entries.async_entry_for_domain_unique_id(
+            self.handler, unique_id
+        )
+        if other is not None and other.entry_id != current.entry_id:
+            return self.async_abort(reason="already_configured")
+        return self.async_update_reload_and_abort(
+            current,
+            data=data,
+            unique_id=unique_id,
+            reason="reconfiguration_successful",
+        )
 
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None
@@ -124,10 +141,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 # If this flow was started as a reconfiguration, update the
                 # existing entry instead of creating a new one.
                 if self.source == "reconfigure":
-                    current = self._get_reconfigure_entry()
-                    self.hass.config_entries.async_update_entry(current, data=user_input)
-                    await self.hass.config_entries.async_reload(current.entry_id)
-                    return self.async_abort(reason="reconfiguration_successful")
+                    return self._async_finish_reconfigure(user_input)
                 return self.async_create_entry(title=info["title"], data=user_input)
             except ConnectException:
                 _LOGGER.exception("Connection error setting up the Bwt Api")
@@ -205,9 +219,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                         return await self.async_step_code()
                     case BwtModel.PERLA_SILK | BwtModel.SMART_DOS:
                         user_input["model"] = info["model"].name
-                        self.hass.config_entries.async_update_entry(current, data=user_input)
-                        await self.hass.config_entries.async_reload(current.entry_id)
-                        return self.async_abort(reason="reconfiguration_successful")
+                        return self._async_finish_reconfigure(user_input)
                     case _:
                         errors["base"] = "unsupported_model"
             except ConnectException:
