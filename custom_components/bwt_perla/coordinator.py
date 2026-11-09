@@ -7,9 +7,10 @@ import json
 import logging
 
 from bwt_api.bwt import BwtModel
-from bwt_api.exception import BwtException
+from bwt_api.exception import BwtException, WrongCodeException
 
 from homeassistant.core import HomeAssistant
+from homeassistant.exceptions import ConfigEntryAuthFailed
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
 from .data.data import ApiData
@@ -83,6 +84,9 @@ class BwtCoordinator(DataUpdateCoordinator[ApiData]):
                     raise UpdateFailed(
                         f"Unsupported API type: {type(self.my_api)}"
                     )
+        except WrongCodeException as err:
+            # Must precede BwtException (its base class) so reauth is triggered.
+            raise ConfigEntryAuthFailed("Invalid login code") from err
         except (BwtException, json.JSONDecodeError) as err:
             raise UpdateFailed(
                 f"Error communicating with BWT device: {err}"
