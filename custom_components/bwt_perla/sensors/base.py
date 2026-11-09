@@ -1,6 +1,4 @@
 
-from datetime import datetime
-
 import logging
 
 from bwt_api.api import treated_to_blended
@@ -19,6 +17,7 @@ from homeassistant.const import (
 from homeassistant.core import callback
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
+from homeassistant.util import dt as dt_util
 
 
 from ..const import DOMAIN
@@ -235,9 +234,7 @@ class HolidayStartSensor(BwtEntity, SensorEntity):
         super().__init__(coordinator, device_info, entry_id, "holiday_mode_start")
         holiday_mode = self.coordinator.data.holiday_mode()
         if holiday_mode > 1:
-            self._attr_native_value = datetime.fromtimestamp(
-                holiday_mode
-            )
+            self._attr_native_value = dt_util.utc_from_timestamp(holiday_mode)
         else:
             self._attr_native_value = None
 
@@ -246,9 +243,7 @@ class HolidayStartSensor(BwtEntity, SensorEntity):
         """Handle updated data from the coordinator."""
         holiday_mode = self.coordinator.data.holiday_mode()
         if holiday_mode > 1:
-            self._attr_native_value = datetime.fromtimestamp(
-                holiday_mode
-            )
+            self._attr_native_value = dt_util.utc_from_timestamp(holiday_mode)
         else:
             self._attr_native_value = None
         self.async_write_ha_state()
