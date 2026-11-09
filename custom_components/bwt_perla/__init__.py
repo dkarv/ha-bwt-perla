@@ -4,12 +4,12 @@ import logging
 
 from bwt_api.api import BwtApi, BwtSilkApi, BwtSmartDosApi
 from bwt_api.bwt import BwtModel
-from bwt_api.exception import BwtException
+from bwt_api.exception import WrongCodeException
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import Platform, CONF_CODE, CONF_HOST
 from homeassistant.core import HomeAssistant, callback
-from homeassistant.exceptions import ConfigEntryNotReady
+from homeassistant.exceptions import ConfigEntryAuthFailed, ConfigEntryNotReady
 from homeassistant.helpers.entity_registry import async_migrate_entries
 from homeassistant.helpers import entity_registry as er
 
@@ -51,6 +51,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             await api.get_registers()
         elif entry.data.get("model") == BwtModel.SMART_DOS.name:
             await api.get_gatt_0201()
+    except WrongCodeException as e:
+        await api.close()
+        raise ConfigEntryAuthFailed("Invalid login code") from e
     except Exception as e:
         _LOGGER.debug("Error connecting to BWT device at %s: %s", entry.data["host"], e)
         await api.close()

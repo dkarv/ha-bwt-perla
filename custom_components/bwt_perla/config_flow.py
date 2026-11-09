@@ -1,5 +1,6 @@
 """Config flow for BWT Perla integration."""
 import logging
+from collections.abc import Mapping
 from typing import Any
 
 from bwt_api.api import BwtApi, BwtSilkApi, BwtSmartDosApi
@@ -142,6 +143,47 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             step_id="code", data_schema=_code_schema(default_code), errors=errors
         )
     
+
+    async def async_step_reauth(
+        self, entry_data: Mapping[str, Any]
+    ) -> ConfigFlowResult:
+        """Handle re-authentication when the login code is no longer valid."""
+        return await self.async_step_reauth_confirm()
+
+
+    async def async_step_reauth_confirm(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        """Ask the user for a new login code."""
+        entry = self._get_reauth_entry()
+        errors: dict[str, str] = {}
+        if user_input is not None:
+            data = {**entry.data, CONF_CODE: user_input[CONF_CODE]}
+            try:
+                info = await validate_input(self.hass, data)
+            except ConnectException:
+                _LOGGER.exception("Connection error setting up the Bwt Api")
+                errors["base"] = "cannot_connect"
+            except WrongCodeException:
+                _LOGGER.exception("Wrong user code passed to bwt api")
+                errors["base"] = "invalid_code_or_api_disabled"
+            except Exception:  # pylint: disable=broad-except
+                _LOGGER.exception("Unexpected exception")
+                errors["base"] = "unknown"
+            else:
+                # Only the local API model validates the code; for any other
+                # model the code was not checked, so never report success.
+                if info["model"] != BwtModel.PERLA_LOCAL_API:
+                    return self.async_abort(reason="reauth_unsupported_model")
+                return self.async_update_reload_and_abort(entry, data=data)
+
+        return self.async_show_form(
+            step_id="reauth_confirm",
+            data_schema=vol.Schema({vol.Required(CONF_CODE): str}),
+            description_placeholders={"host": entry.data[CONF_HOST]},
+            errors=errors,
+        )
+
 
     async def async_step_reconfigure(self, user_input: dict[str, Any] | None = None):
         """Manual reconfiguration to change a setting."""

@@ -1,6 +1,8 @@
 {
     "config": {
         "abort": {
+            "reauth_successful": "Erneute Authentifizierung erfolgreich",
+            "reauth_unsupported_model": "Erneute Authentifizierung wird nur für Geräte mit lokaler API unterstützt",
             "already_configured": "Gerät ist schon konfiguriert"
         },
         "error": {
@@ -9,6 +11,13 @@
             "unknown": "Unerwarteter Fehler"
         },
         "step": {
+            "reauth_confirm": {
+                "title": "Erneut authentifizieren",
+                "description": "Der Login-Code für {host} ist nicht mehr gültig. Bitte den aktuellen Code eingeben.",
+                "data": {
+                    "code": "User-Code"
+                }
+            },
             "user": {
                 "data": {
                     "code": "User-Code",
