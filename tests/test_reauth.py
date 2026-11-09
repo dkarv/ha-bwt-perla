@@ -70,7 +70,7 @@ async def test_coordinator_wrong_code_raises_auth_failed(hass):
     """WrongCodeException during an update is not wrapped into UpdateFailed."""
     api = MagicMock()
     api.get_current_data = AsyncMock(side_effect=WrongCodeException("bad"))
-    coordinator = BwtCoordinator(hass, api, BwtModel.PERLA_LOCAL_API)
+    coordinator = BwtCoordinator(hass, _entry(), api, BwtModel.PERLA_LOCAL_API)
     with pytest.raises(ConfigEntryAuthFailed):
         await coordinator._async_update_data()
 
@@ -79,6 +79,84 @@ async def test_coordinator_other_bwt_error_is_update_failed(hass):
     """Other BwtExceptions keep being reported as UpdateFailed."""
     api = MagicMock()
     api.get_current_data = AsyncMock(side_effect=BwtException("down"))
-    coordinator = BwtCoordinator(hass, api, BwtModel.PERLA_LOCAL_API)
+    coordinator = BwtCoordinator(hass, _entry(), api, BwtModel.PERLA_LOCAL_API)
     with pytest.raises(UpdateFailed):
         await coordinator._async_update_data()
+
+
+async def test_setup_and_unload_use_runtime_data(hass):
+    """The coordinator lives in entry.runtime_data and unload closes the api."""
+    entry = _entry()
+    entry.add_to_hass(hass)
+
+    data = MagicMock()
+    api = MagicMock()
+    api.get_current_data = AsyncMock(return_value=data)
+    api.close = AsyncMock()
+    with patch("custom_components.bwt_perla.BwtApi", return_value=api), patch(
+        "custom_components.bwt_perla.coordinator.LocalApiData"
+    ) as data_cls:
+        data_cls.return_value.current_flow.return_value = 0
+        with patch.object(
+            hass.config_entries, "async_forward_entry_setups", AsyncMock()
+        ), patch.object(
+            hass.config_entries, "async_unload_platforms", AsyncMock(return_value=True)
+        ):
+            assert await hass.config_entries.async_setup(entry.entry_id)
+            await hass.async_block_till_done()
+            assert entry.state is ConfigEntryState.LOADED
+            coordinator = entry.runtime_data
+            assert isinstance(coordinator, BwtCoordinator)
+            assert coordinator.config_entry is entry
+            assert coordinator.model is BwtModel.PERLA_LOCAL_API
+            assert DOMAIN not in hass.data
+
+            assert await hass.config_entries.async_unload(entry.entry_id)
+            api.close.assert_awaited_once()
+
+
+async def test_setup_sets_missing_unique_id(hass):
+    """Entries created before unique ids existed get one derived from the host."""
+    entry = _entry()
+    entry.add_to_hass(hass)
+    assert entry.unique_id is None
+
+    api = MagicMock()
+    api.get_current_data = AsyncMock(side_effect=BwtException("down"))
+    api.close = AsyncMock()
+    with patch("custom_components.bwt_perla.BwtApi", return_value=api):
+        await hass.config_entries.async_setup(entry.entry_id)
+
+    assert entry.unique_id == "192.168.1.50"
+
+
+async def test_smartdos_requests_run_concurrently(hass):
+    """The six SmartDos requests are issued concurrently, not one after another."""
+    import asyncio
+
+    started = 0
+    all_started = asyncio.Event()
+
+    async def fetch():
+        nonlocal started
+        started += 1
+        if started == 6:
+            all_started.set()
+        await asyncio.wait_for(all_started.wait(), 1)
+        return MagicMock()
+
+    api = MagicMock()
+    for name in (
+        "get_device_info",
+        "get_configuration",
+        "get_remaining_capacity",
+        "get_treated_water",
+        "get_substance_dosage",
+        "get_wifi_info",
+    ):
+        setattr(api, name, fetch)
+    coordinator = BwtCoordinator(hass, _entry(), api, BwtModel.SMART_DOS)
+    with patch("custom_components.bwt_perla.coordinator.SmartDosApiData") as data_cls:
+        data_cls.return_value.current_flow.return_value = 0
+        await coordinator._async_update_data()
+    assert started == 6

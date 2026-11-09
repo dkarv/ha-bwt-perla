@@ -1,12 +1,9 @@
 """BWT Sensors."""
-from bwt_api.api import BwtApi, BwtSmartDosApi
 from bwt_api.bwt import BwtModel
-from bwt_api.exception import WrongCodeException
 
 from homeassistant.components.sensor import (
     SensorDeviceClass,
 )
-from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
     PERCENTAGE,
     UnitOfMass,
@@ -14,12 +11,11 @@ from homeassistant.const import (
     UnitOfVolume,
 )
 from homeassistant.core import HomeAssistant
-from homeassistant.exceptions import ConfigEntryAuthFailed
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .const import DOMAIN
-from .coordinator import BwtCoordinator
+from .coordinator import BwtConfigEntry
 from .sensors.base import *
 from .sensors.error import *
 
@@ -44,23 +40,12 @@ _UNKNOWN = "mdi:help-circle"
 
 async def async_setup_entry(
     hass: HomeAssistant,
-    config_entry: ConfigEntry,
+    config_entry: BwtConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up bwt sensors from config entry."""
-    my_api = hass.data[DOMAIN][config_entry.entry_id]
-    if isinstance(my_api, BwtApi):
-        model = BwtModel.PERLA_LOCAL_API
-    elif isinstance(my_api, BwtSmartDosApi):
-        model = BwtModel.SMART_DOS
-    else:
-        model = BwtModel.PERLA_SILK
-    coordinator = BwtCoordinator(hass, my_api, model)
-
-    try:
-        await coordinator.async_config_entry_first_refresh()
-    except WrongCodeException as e:
-        raise ConfigEntryAuthFailed from e
+    coordinator = config_entry.runtime_data
+    model = coordinator.model
 
     model_suffix = coordinator.get_model_suffix()
     device_info = DeviceInfo(

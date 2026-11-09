@@ -74,6 +74,10 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
     VERSION = 3
 
+    async def _async_set_unique_id(self, host: str) -> None:
+        """Key the entry on the host (bwt_api exposes no device id for all models)."""
+        await self.async_set_unique_id(host.lower())
+        self._abort_if_unique_id_configured()
 
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None
@@ -81,6 +85,8 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         """Handle the initial step."""
         errors: dict[str, str] = {}
         if user_input is not None:
+            # Outside the try block: the abort must not be swallowed below.
+            await self._async_set_unique_id(user_input[CONF_HOST])
             try:
                 info = await validate_input(self.hass, user_input)
                 match info["model"]:
