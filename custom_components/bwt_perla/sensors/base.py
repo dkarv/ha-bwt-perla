@@ -273,7 +273,7 @@ class CalculatedWaterSensor(BwtEntity, SensorEntity):
         self._attr_device_class = SensorDeviceClass.WATER
         self._attr_icon = icon
         self._extract = extract
-        self.suggested_display_precision = 0
+        self._attr_suggested_display_precision = 0
         self._attr_native_value = self._extract(self.coordinator.data)
 
     @callback

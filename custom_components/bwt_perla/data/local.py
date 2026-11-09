@@ -33,11 +33,17 @@ class LocalApiData(ApiData):
     def day_output(self) -> int:
         return treated_to_blended(self._data.treated_day, self._data.in_hardness.dH, self._data.out_hardness.dH)
 
-    def capacity_1(self) -> int:
-        return self._data.capacity_1 / (self._data.in_hardness.dH - self._data.out_hardness.dH) / 1000.0
+    def _capacity(self, capacity: float) -> float | None:
+        diff = self._data.in_hardness.dH - self._data.out_hardness.dH
+        if diff == 0:
+            return None
+        return capacity / diff / 1000.0
 
-    def capacity_2(self) -> int:
-        return self._data.capacity_2 / (self._data.in_hardness.dH - self._data.out_hardness.dH) / 1000.0
+    def capacity_1(self) -> float | None:
+        return self._capacity(self._data.capacity_1)
+
+    def capacity_2(self) -> float | None:
+        return self._capacity(self._data.capacity_2)
 
     def last_regeneration_1(self) -> datetime:
         return self._data.regeneration_last_1.astimezone()
