@@ -32,12 +32,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: BwtConfigEntry) -> bool:
         new_data["model"] = model_value
         hass.config_entries.async_update_entry(entry, data=new_data)
 
-    # Entries created before unique ids were introduced are keyed on their host.
-    if entry.unique_id is None:
-        hass.config_entries.async_update_entry(
-            entry, unique_id=entry.data[CONF_HOST].lower()
-        )
-
     lib_logger = _LOGGER.getChild("bwt_api")
     if model_value == BwtModel.PERLA_LOCAL_API.name:
         model = BwtModel.PERLA_LOCAL_API
@@ -63,7 +57,11 @@ async def async_setup_entry(hass: HomeAssistant, entry: BwtConfigEntry) -> bool:
 
     entry.runtime_data = coordinator
 
-    await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
+    try:
+        await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
+    except Exception:
+        await api.close()
+        raise
 
     return True
 
@@ -118,6 +116,26 @@ async def async_migrate_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         
         hass.config_entries.async_update_entry(entry, version=3)
 
-    _LOGGER.info("Migration to version %s successful", entry.version)
+    # Entries created before unique ids were introduced are keyed on their host.
+    if entry.version == 3 and entry.minor_version < 2:
+        unique_id = entry.data[CONF_HOST].lower()
+        existing = hass.config_entries.async_entry_for_domain_unique_id(
+            entry.domain, unique_id
+        )
+        if existing is not None and existing.entry_id != entry.entry_id:
+            _LOGGER.warning(
+                "Not setting unique id %s on %s: already used by another entry",
+                unique_id,
+                entry.title,
+            )
+            unique_id = None
+        if unique_id is None:
+            hass.config_entries.async_update_entry(entry, minor_version=2)
+        else:
+            hass.config_entries.async_update_entry(
+                entry, unique_id=unique_id, minor_version=2
+            )
+
+    _LOGGER.info("Migration to version %s.%s successful", entry.version, entry.minor_version)
 
     return True

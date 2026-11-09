@@ -74,23 +74,14 @@ class BwtCoordinator(DataUpdateCoordinator[ApiData]):
                         status = {}
                     new_values = SilkApiData(registers, status)
                 elif self.model == BwtModel.SMART_DOS:
-                    # The requests are independent and share one aiohttp session,
-                    # so run them concurrently within the shared timeout.
-                    (
-                        device_info,
-                        configuration,
-                        remaining_capacity,
-                        treated_water,
-                        substance_dosage,
-                        wifi_info,
-                    ) = await asyncio.gather(
-                        self.my_api.get_device_info(),
-                        self.my_api.get_configuration(),
-                        self.my_api.get_remaining_capacity(),
-                        self.my_api.get_treated_water(),
-                        self.my_api.get_substance_dosage(),
-                        self.my_api.get_wifi_info(),
-                    )
+                    # Sequential on purpose: the device's embedded server is not
+                    # known to handle concurrent requests.
+                    device_info = await self.my_api.get_device_info()
+                    configuration = await self.my_api.get_configuration()
+                    remaining_capacity = await self.my_api.get_remaining_capacity()
+                    treated_water = await self.my_api.get_treated_water()
+                    substance_dosage = await self.my_api.get_substance_dosage()
+                    wifi_info = await self.my_api.get_wifi_info()
                     new_values = SmartDosApiData(
                         device_info,
                         configuration,

@@ -10,6 +10,7 @@ from homeassistant.helpers.update_coordinator import UpdateFailed
 import pytest
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
+from custom_components.bwt_perla import async_migrate_entry
 from custom_components.bwt_perla.const import DOMAIN
 from custom_components.bwt_perla.coordinator import BwtCoordinator
 
@@ -115,48 +116,88 @@ async def test_setup_and_unload_use_runtime_data(hass):
             api.close.assert_awaited_once()
 
 
-async def test_setup_sets_missing_unique_id(hass):
+async def test_migration_backfills_unique_id(hass):
     """Entries created before unique ids existed get one derived from the host."""
     entry = _entry()
     entry.add_to_hass(hass)
     assert entry.unique_id is None
+    assert entry.minor_version == 1
 
-    api = MagicMock()
-    api.get_current_data = AsyncMock(side_effect=BwtException("down"))
-    api.close = AsyncMock()
-    with patch("custom_components.bwt_perla.BwtApi", return_value=api):
-        await hass.config_entries.async_setup(entry.entry_id)
+    assert await async_migrate_entry(hass, entry)
 
     assert entry.unique_id == "192.168.1.50"
+    assert entry.minor_version == 2
 
 
-async def test_smartdos_requests_run_concurrently(hass):
-    """The six SmartDos requests are issued concurrently, not one after another."""
+async def test_migration_skips_unique_id_on_collision(hass):
+    """A second entry for the same host keeps no unique id instead of erroring."""
+    first = _entry()
+    first.add_to_hass(hass)
+    second = _entry()
+    second.add_to_hass(hass)
+
+    assert await async_migrate_entry(hass, first)
+    assert await async_migrate_entry(hass, second)
+
+    assert first.unique_id == "192.168.1.50"
+    assert second.unique_id is None
+    assert second.minor_version == 2
+
+
+async def test_smartdos_requests_run_sequentially(hass):
+    """The six SmartDos requests are issued one after another, never overlapping."""
     import asyncio
 
-    started = 0
-    all_started = asyncio.Event()
+    active = 0
+    max_active = 0
+    calls = []
 
-    async def fetch():
-        nonlocal started
-        started += 1
-        if started == 6:
-            all_started.set()
-        await asyncio.wait_for(all_started.wait(), 1)
-        return MagicMock()
+    def make(name):
+        async def fetch():
+            nonlocal active, max_active
+            active += 1
+            max_active = max(max_active, active)
+            calls.append(name)
+            await asyncio.sleep(0)
+            active -= 1
+            return MagicMock()
 
-    api = MagicMock()
-    for name in (
+        return fetch
+
+    names = [
         "get_device_info",
         "get_configuration",
         "get_remaining_capacity",
         "get_treated_water",
         "get_substance_dosage",
         "get_wifi_info",
-    ):
-        setattr(api, name, fetch)
+    ]
+    api = MagicMock()
+    for name in names:
+        setattr(api, name, make(name))
     coordinator = BwtCoordinator(hass, _entry(), api, BwtModel.SMART_DOS)
     with patch("custom_components.bwt_perla.coordinator.SmartDosApiData") as data_cls:
         data_cls.return_value.current_flow.return_value = 0
         await coordinator._async_update_data()
-    assert started == 6
+    assert calls == names
+    assert max_active == 1
+
+
+async def test_setup_closes_api_when_platform_setup_fails(hass):
+    """A failing platform forward must not leak the api session."""
+    entry = _entry()
+    entry.add_to_hass(hass)
+    api = MagicMock()
+    api.get_current_data = AsyncMock(return_value=MagicMock())
+    api.close = AsyncMock()
+    with (
+        patch("custom_components.bwt_perla.BwtApi", return_value=api),
+        patch.object(
+            hass.config_entries,
+            "async_forward_entry_setups",
+            AsyncMock(side_effect=RuntimeError("boom")),
+        ),
+        patch("custom_components.bwt_perla.coordinator.LocalApiData"),
+    ):
+        await hass.config_entries.async_setup(entry.entry_id)
+    api.close.assert_awaited()
