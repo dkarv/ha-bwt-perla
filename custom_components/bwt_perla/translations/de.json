@@ -1,17 +1,28 @@
 {
     "config": {
         "abort": {
-            "already_configured": "Gerät ist schon konfiguriert"
+            "already_configured": "Gerät ist schon konfiguriert",
+            "reconfiguration_successful": "Gerät wurde erfolgreich neu konfiguriert"
         },
         "error": {
             "cannot_connect": "Verbindungsproblem",
             "invalid_code_or_api_disabled": "Ungültiger Code oder lokale API nicht aktiviert. Bitte prüfen: 1) Geräte-Firmware ist Version 2.02xx oder neuer, 2) Lokale API ist aktiviert unter Einstellungen > Allgemein > Verbindung, 3) Login-Code ist korrekt (per E-Mail bei Registrierung erhalten)",
-            "unknown": "Unerwarteter Fehler"
+            "unknown": "Unerwarteter Fehler",
+            "unsupported_model": "Nicht unterstütztes BWT-Modell"
         },
         "step": {
+            "code": {
+                "data": {
+                    "code": "User-Code"
+                }
+            },
+            "reconfigure": {
+                "data": {
+                    "host": "Host"
+                }
+            },
             "user": {
                 "data": {
-                    "code": "User-Code",
                     "host": "Host"
                 }
             }
@@ -90,6 +101,9 @@
             },
             "technician_service": {
                 "name": "Letzter Techniker Service"
+            },
+            "warranty_end": {
+                "name": "Garantieende"
             },
             "total_output": {
                 "name": "Gesamter Wasserverbrauch"
