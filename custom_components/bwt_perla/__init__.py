@@ -163,7 +163,7 @@ def _create_moved_entities_issue(
         f"binary_sensors_moved_{entry.entry_id}",
         is_fixable=False,
         is_persistent=True,
-        severity=ir.IssueSeverity.ERROR,
+        severity=ir.IssueSeverity.WARNING,
         translation_key="binary_sensors_moved",
         translation_placeholders={
             "title": entry.title,
