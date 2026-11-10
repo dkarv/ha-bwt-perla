@@ -220,11 +220,28 @@ async def test_silk_categories_and_state_classes(hass):
     assert reg.entity_category is EntityCategory.DIAGNOSTIC
     assert reg.disabled_by is er.RegistryEntryDisabler.INTEGRATION
 
-    raw = _reg(hass, entry, "silk_register_5")
-    assert raw.entity_category is EntityCategory.DIAGNOSTIC
-    assert raw.disabled_by is er.RegistryEntryDisabler.INTEGRATION
-    assert raw.original_name == "Device ranking"
-    # Reserved registers get distinct translated names (and thus entity ids).
+    # Registers with a known meaning are named, enabled diagnostic sensors.
+    reg, state = _sensor_attrs(hass, entry, "device_ranking")
+    assert reg.entity_id == "sensor.bwt_perla_device_ranking"
+    assert reg.entity_category is EntityCategory.DIAGNOSTIC
+    assert reg.disabled_by is None
+    assert reg.original_name == "Device ranking"
+    assert state.state == "1"
+    reg, state = _sensor_attrs(hass, entry, "allow_salt_type_change")
+    assert reg.entity_category is EntityCategory.DIAGNOSTIC
+    assert state.state == "on"
+
+    # Only registers with an unknown meaning stay raw and disabled.
+    registry = er.async_get(hass)
+    raw = {
+        e.unique_id.removeprefix(f"{entry.entry_id}_")
+        for e in er.async_entries_for_config_entry(registry, entry.entry_id)
+        if "silk_register_" in e.unique_id
+    }
+    assert raw == {f"silk_register_{i}" for i in (1, 9, 10, 36, 37, 44, 45, 46, 47)}
+    reg = _reg(hass, entry, "silk_register_9")
+    assert reg.entity_category is EntityCategory.DIAGNOSTIC
+    assert reg.disabled_by is er.RegistryEntryDisabler.INTEGRATION
     names = {_reg(hass, entry, f"silk_register_{i}").original_name
              for i in (1, 36, 37, 44, 45, 46)}
     assert names == {f"Reserved {n}" for n in range(1, 7)}
@@ -237,3 +254,33 @@ async def test_silk_categories_and_state_classes(hass):
 
     _, state = _sensor_attrs(hass, entry, "salt_remaining_kg")
     assert state.attributes["state_class"] == SensorStateClass.MEASUREMENT
+
+
+async def test_silk_register_entities_migrate_to_named_sensors(hass):
+    """Existing raw register entities keep their entity id under the new key."""
+    entry = _entry(BwtModel.PERLA_SILK)
+    entry.add_to_hass(hass)
+    registry = er.async_get(hass)
+    old = registry.async_get_or_create(
+        "sensor", DOMAIN, f"{entry.entry_id}_silk_register_0",
+        config_entry=entry, suggested_object_id="bwt_perla_silk_register_0",
+    )
+    unknown = registry.async_get_or_create(
+        "sensor", DOMAIN, f"{entry.entry_id}_silk_register_9",
+        config_entry=entry, suggested_object_id="bwt_perla_silk_register_9",
+    )
+
+    with patch("custom_components.bwt_perla.BwtSilkApi", return_value=_silk_api()):
+        await hass.config_entries.async_setup(entry.entry_id)
+        await hass.async_block_till_done()
+
+    assert entry.state is ConfigEntryState.LOADED
+    assert (entry.version, entry.minor_version) == (3, 2)
+    migrated = registry.async_get(old.entity_id)
+    assert migrated.unique_id == f"{entry.entry_id}_salt_type"
+    assert registry.async_get_entity_id(
+        "sensor", DOMAIN, f"{entry.entry_id}_salt_type"
+    ) == "sensor.bwt_perla_silk_register_0"
+    assert registry.async_get(unknown.entity_id).unique_id == (
+        f"{entry.entry_id}_silk_register_9"
+    )

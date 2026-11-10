@@ -39,6 +39,7 @@ _OIL_LEVEL = "mdi:oil-level"
 _WATER = "mdi:water"
 _WATER_CHECK = "mdi:water-check"
 _UNKNOWN = "mdi:help-circle"
+_SETTING = "mdi:cog-outline"
 
 
 async def async_setup_entry(
@@ -294,7 +295,11 @@ async def async_setup_entry(
         entities.append(SimpleBinarySensor(coordinator, device_info, config_entry.entry_id, "aqa_max_volume", lambda data: data.aqa_max_volume(), _UNKNOWN, entity_category=EntityCategory.DIAGNOSTIC))
         
     elif model == BwtModel.PERLA_SILK:
-        from .data.silk import UNKNOWN_REGISTER_INDEXES
+        from .data.silk import (
+            FLAG_REGISTERS,
+            SETTING_REGISTERS,
+            UNKNOWN_REGISTER_INDEXES,
+        )
 
         entities.append(
             DeviceClassSensor(
@@ -442,6 +447,30 @@ async def async_setup_entry(
                 _TIME,
             )
         )
+        for key, index in SETTING_REGISTERS.items():
+            entities.append(
+                SimpleSensor(
+                    coordinator,
+                    device_info,
+                    config_entry.entry_id,
+                    key,
+                    lambda data, index=index: data.get_register(index),
+                    _SETTING,
+                    entity_category=EntityCategory.DIAGNOSTIC,
+                )
+            )
+        for key, index in FLAG_REGISTERS.items():
+            entities.append(
+                SimpleBinarySensor(
+                    coordinator,
+                    device_info,
+                    config_entry.entry_id,
+                    key,
+                    lambda data, index=index: data.get_flag(index),
+                    _SETTING,
+                    entity_category=EntityCategory.DIAGNOSTIC,
+                )
+            )
         for index in UNKNOWN_REGISTER_INDEXES:
             entities.append(
                 UnknownSensor(
