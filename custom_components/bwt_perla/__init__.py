@@ -114,7 +114,6 @@ def _move_binary_sensors(hass: HomeAssistant, entry: ConfigEntry) -> dict[str, s
                 DOMAIN,
                 unique_id,
                 config_entry=entry,
-                config_subentry_id=old.config_subentry_id,
                 device_id=old.device_id,
                 suggested_object_id=old_id.split(".", 1)[1],
                 disabled_by=old.disabled_by,
