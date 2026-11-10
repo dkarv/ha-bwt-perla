@@ -76,6 +76,11 @@ async def async_unload_entry(hass: HomeAssistant, entry: BwtConfigEntry) -> bool
     return unload_ok
 
 
+async def async_remove_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:
+    """Clean up the persistent repair issue when the config entry is deleted."""
+    ir.async_delete_issue(hass, DOMAIN, f"binary_sensors_moved_{entry.entry_id}")
+
+
 # Entity keys that used to be registered in the sensor domain and now live in the
 # binary_sensor domain.
 _BINARY_SENSOR_KEYS = (

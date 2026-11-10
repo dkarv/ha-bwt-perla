@@ -342,3 +342,22 @@ async def test_migration_from_version_2(hass):
     assert registry.async_get_entity_id(
         "binary_sensor", DOMAIN, f"{entry.entry_id}_aqa_max_flow"
     )
+
+
+async def test_removing_entry_deletes_repair_issue(hass):
+    entry = _old_entry(BwtModel.SMART_DOS)
+    entry.add_to_hass(hass)
+    other = _old_entry(BwtModel.SMART_DOS)
+    other.add_to_hass(hass)
+    registry = er.async_get(hass)
+    _old_sensor(registry, entry, "buzzer")
+    _old_sensor(registry, other, "buzzer")
+    assert await async_migrate_entry(hass, entry)
+    assert await async_migrate_entry(hass, other)
+    assert len(_issues(hass)) == 2
+
+    await hass.config_entries.async_remove(entry.entry_id)
+
+    assert [i.issue_id for i in _issues(hass)] == [
+        f"binary_sensors_moved_{other.entry_id}"
+    ]
