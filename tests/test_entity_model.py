@@ -32,7 +32,7 @@ HOLIDAY_EPOCH = 1_900_000_000
 def _entry(model: BwtModel, **extra):
     data = {CONF_HOST: HOST, "model": model.name, **extra}
     return MockConfigEntry(
-        domain=DOMAIN, version=4, title="BWT", data=data, unique_id=HOST
+        domain=DOMAIN, version=3, minor_version=3, title="BWT", data=data, unique_id=HOST
     )
 
 

@@ -18,7 +18,7 @@ from custom_components.bwt_perla.coordinator import BwtCoordinator
 def _entry():
     return MockConfigEntry(
         domain=DOMAIN,
-        version=4,
+        version=3,
         title="BWT Perla One",
         data={
             CONF_HOST: "192.168.1.50",
@@ -126,7 +126,7 @@ async def test_migration_backfills_unique_id(hass):
     assert await async_migrate_entry(hass, entry)
 
     assert entry.unique_id == "192.168.1.50"
-    assert entry.minor_version == 2
+    assert entry.minor_version == 3
 
 
 async def test_migration_skips_unique_id_on_collision(hass):
@@ -141,7 +141,7 @@ async def test_migration_skips_unique_id_on_collision(hass):
 
     assert first.unique_id == "192.168.1.50"
     assert second.unique_id is None
-    assert second.minor_version == 2
+    assert second.minor_version == 3
 
 
 async def test_smartdos_requests_run_sequentially(hass):
