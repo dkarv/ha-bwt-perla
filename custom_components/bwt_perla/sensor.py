@@ -294,7 +294,7 @@ async def async_setup_entry(
         entities.append(SimpleBinarySensor(coordinator, device_info, config_entry.entry_id, "aqa_max_volume", lambda data: data.aqa_max_volume(), _UNKNOWN, entity_category=EntityCategory.DIAGNOSTIC))
         
     elif model == BwtModel.PERLA_SILK:
-        from .data.silk import UNKNOWN_REGISTER_INDEXES
+        from .data.silk import RAW_REGISTER_INDEXES
 
         entities.append(
             DeviceClassSensor(
@@ -442,9 +442,9 @@ async def async_setup_entry(
                 _TIME,
             )
         )
-        for index in UNKNOWN_REGISTER_INDEXES:
+        for index in RAW_REGISTER_INDEXES:
             entities.append(
-                UnknownSensor(
+                RawRegisterSensor(
                     coordinator,
                     device_info,
                     config_entry.entry_id,

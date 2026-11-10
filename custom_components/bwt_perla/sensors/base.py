@@ -321,8 +321,8 @@ class CalculatedWaterSensor(BwtEntity, SensorEntity):
 
 
 
-class UnknownSensor(BwtEntity, SensorEntity):
-    """Raw Silk register sensor (named when mapping is known)."""
+class RawRegisterSensor(BwtEntity, SensorEntity):
+    """Raw Silk register value (diagnostic, disabled by default)."""
 
     def __init__(
         self,

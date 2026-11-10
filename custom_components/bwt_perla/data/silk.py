@@ -141,7 +141,7 @@ DAILY_WATER_USAGE = 42
 # Registers exposed as raw diagnostic silk_register_<index> entities. Their
 # names live in strings.json / translations (the five duration registers have
 # dedicated sensors instead).
-UNKNOWN_REGISTER_INDEXES = [
+RAW_REGISTER_INDEXES = [
     0, 1, 5, 6, 9, 10, 11, 12, 13, 20, 21, 22, 29, 32, 33, 35, 36, 37, 38, 39,
     40, 41, 44, 45, 46, 47,
 ]
