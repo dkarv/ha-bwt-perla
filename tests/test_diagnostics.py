@@ -1,5 +1,6 @@
 """Tests for diagnostics redaction."""
 
+from dataclasses import replace
 from unittest.mock import AsyncMock
 
 from bwt_api.bwt import BwtModel
@@ -36,12 +37,18 @@ async def test_diagnostics_redacts_sensitive_data(hass):
 
 
 async def test_diagnostics_smartdos_redacts_wifi(hass):
+    api = _smartdos_api()
+    info = await api.get_device_info()
+    api.get_device_info = AsyncMock(
+        return_value=replace(info, device_id="SECRET-DEVICE-ID")
+    )
     entry = _entry(BwtModel.SMART_DOS)
-    await _setup(hass, entry, "BwtSmartDosApi", _smartdos_api())
+    await _setup(hass, entry, "BwtSmartDosApi", api)
     diag = await async_get_config_entry_diagnostics(hass, entry)
     text = json_dumps(diag)
-    for secret in (SSID, MAC, "10.0.0.5", HOST):
+    for secret in (SSID, MAC, "10.0.0.5", HOST, "SECRET-DEVICE-ID"):
         assert secret not in text
+    assert diag["data"]["device_info"]["device_id"] == "**REDACTED**"
     assert diag["data"]["wifi_info"]["rssiAvg"] == "-65"
 
 

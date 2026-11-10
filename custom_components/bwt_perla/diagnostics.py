@@ -25,6 +25,7 @@ TO_REDACT = {
     "serial_number",
     "wifi_ssid",
     "mac_address",
+    "device_id",
 }
 
 
