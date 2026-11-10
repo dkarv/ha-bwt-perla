@@ -138,51 +138,10 @@ ALLOW_CHANGING_REGEN_TIME = 40
 RESIN_CAPACITY = 41
 DAILY_WATER_USAGE = 42
 
-# Human-readable map for leftover / debug register entities.
-REGISTER_NAMES: dict[int, str] = {
-    0: "Salt type",
-    1: "Reserved",
-    5: "Device ranking",
-    6: "Model code",
-    9: "Register 9",
-    10: "Register 10",
-    11: "Duplex setting",
-    12: "Base model number",
-    13: "Hardness units",
-    20: "Turbine pulses per litre",
-    21: "Recharge interval",
-    22: "Capacity scale factor",
-    24: "Fill duration",
-    25: "Dwell duration",
-    26: "Brine duration",
-    27: "Backwash duration",
-    28: "Rinse duration",
-    29: "Salt alarm mode",
-    32: "Salt use per regeneration",
-    33: "Service reminder mode",
-    35: "Recharge algorithm",
-    36: "Reserved",
-    37: "Reserved",
-    38: "Day of week",
-    39: "Allow salt type change",
-    40: "Allow regen time change",
-    41: "Resin capacity",
-    44: "Reserved",
-    45: "Reserved",
-    46: "Reserved",
-    47: "Register 47",
-}
-
-# Duration registers (minutes) that have dedicated UnitSensors.
-_NAMED_DURATION_INDEXES = {
-    FILL_DURATION,
-    DWELL_DURATION,
-    BRINE_DURATION,
-    BACKWASH_DURATION,
-    RINSE_DURATION,
-}
-
-# Still exposed as raw silk_register_* (not duplicated by named sensors).
+# Registers exposed as raw diagnostic silk_register_<index> entities. Their
+# names live in strings.json / translations (the five duration registers have
+# dedicated sensors instead).
 UNKNOWN_REGISTER_INDEXES = [
-    i for i in REGISTER_NAMES if i not in _NAMED_DURATION_INDEXES
+    0, 1, 5, 6, 9, 10, 11, 12, 13, 20, 21, 22, 29, 32, 33, 35, 36, 37, 38, 39,
+    40, 41, 44, 45, 46, 47,
 ]

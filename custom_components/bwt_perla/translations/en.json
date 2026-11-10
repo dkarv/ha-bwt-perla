@@ -171,6 +171,84 @@
             },
             "rinse_duration": {
                 "name": "Rinse duration"
+            },
+            "silk_register_0": {
+                "name": "Salt type"
+            },
+            "silk_register_1": {
+                "name": "Reserved 1"
+            },
+            "silk_register_5": {
+                "name": "Device ranking"
+            },
+            "silk_register_6": {
+                "name": "Model code"
+            },
+            "silk_register_9": {
+                "name": "Register 9"
+            },
+            "silk_register_10": {
+                "name": "Register 10"
+            },
+            "silk_register_11": {
+                "name": "Duplex setting"
+            },
+            "silk_register_12": {
+                "name": "Base model number"
+            },
+            "silk_register_13": {
+                "name": "Hardness units"
+            },
+            "silk_register_20": {
+                "name": "Turbine pulses per litre"
+            },
+            "silk_register_21": {
+                "name": "Recharge interval"
+            },
+            "silk_register_22": {
+                "name": "Capacity scale factor"
+            },
+            "silk_register_29": {
+                "name": "Salt alarm mode"
+            },
+            "silk_register_32": {
+                "name": "Salt use per regeneration"
+            },
+            "silk_register_33": {
+                "name": "Service reminder mode"
+            },
+            "silk_register_35": {
+                "name": "Recharge algorithm"
+            },
+            "silk_register_36": {
+                "name": "Reserved 2"
+            },
+            "silk_register_37": {
+                "name": "Reserved 3"
+            },
+            "silk_register_38": {
+                "name": "Day of week"
+            },
+            "silk_register_39": {
+                "name": "Allow salt type change"
+            },
+            "silk_register_40": {
+                "name": "Allow regen time change"
+            },
+            "silk_register_41": {
+                "name": "Resin capacity"
+            },
+            "silk_register_44": {
+                "name": "Reserved 4"
+            },
+            "silk_register_45": {
+                "name": "Reserved 5"
+            },
+            "silk_register_46": {
+                "name": "Reserved 6"
+            },
+            "silk_register_47": {
+                "name": "Register 47"
             }
         }
     },

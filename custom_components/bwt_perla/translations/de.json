@@ -171,6 +171,84 @@
             },
             "rinse_duration": {
                 "name": "Spüldauer"
+            },
+            "silk_register_0": {
+                "name": "Salzart"
+            },
+            "silk_register_1": {
+                "name": "Reserviert 1"
+            },
+            "silk_register_5": {
+                "name": "Geräterang"
+            },
+            "silk_register_6": {
+                "name": "Modellcode"
+            },
+            "silk_register_9": {
+                "name": "Register 9"
+            },
+            "silk_register_10": {
+                "name": "Register 10"
+            },
+            "silk_register_11": {
+                "name": "Duplex-Einstellung"
+            },
+            "silk_register_12": {
+                "name": "Basismodellnummer"
+            },
+            "silk_register_13": {
+                "name": "Härteeinheit"
+            },
+            "silk_register_20": {
+                "name": "Turbinenimpulse pro Liter"
+            },
+            "silk_register_21": {
+                "name": "Regenerationsintervall"
+            },
+            "silk_register_22": {
+                "name": "Kapazitätsfaktor"
+            },
+            "silk_register_29": {
+                "name": "Salzalarm-Modus"
+            },
+            "silk_register_32": {
+                "name": "Salzverbrauch pro Regeneration"
+            },
+            "silk_register_33": {
+                "name": "Service-Erinnerungsmodus"
+            },
+            "silk_register_35": {
+                "name": "Regenerationsalgorithmus"
+            },
+            "silk_register_36": {
+                "name": "Reserviert 2"
+            },
+            "silk_register_37": {
+                "name": "Reserviert 3"
+            },
+            "silk_register_38": {
+                "name": "Wochentag"
+            },
+            "silk_register_39": {
+                "name": "Salzartwechsel erlaubt"
+            },
+            "silk_register_40": {
+                "name": "Änderung der Regenerationszeit erlaubt"
+            },
+            "silk_register_41": {
+                "name": "Harzkapazität"
+            },
+            "silk_register_44": {
+                "name": "Reserviert 4"
+            },
+            "silk_register_45": {
+                "name": "Reserviert 5"
+            },
+            "silk_register_46": {
+                "name": "Reserviert 6"
+            },
+            "silk_register_47": {
+                "name": "Register 47"
             }
         }
     },

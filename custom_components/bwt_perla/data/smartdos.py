@@ -98,12 +98,16 @@ class SmartDosApiData(ApiData):
     def wifi_ssid(self) -> str:
         return self._wifi_info.ssid
 
-    def wifi_rssi(self) -> Optional[str]:
-        # Use average RSSI if available, otherwise raw RSSI
-        rssi_avg = getattr(self._wifi_info, "rssiAvg", None)
-        if rssi_avg is not None:
-            return str(rssi_avg)
-        return getattr(self._wifi_info, "rssi", None)
+    def wifi_rssi(self) -> Optional[float]:
+        """Wi-Fi signal strength in dBm (average if available, else raw)."""
+        # The API reports rssiAvg as a string.
+        for attr in ("rssiAvg", "rssi"):
+            value = getattr(self._wifi_info, attr, None)
+            try:
+                return float(value)
+            except (TypeError, ValueError):
+                continue
+        return None
 
     def mac_address(self) -> Optional[str]:
         # MAC address is in WiFi info

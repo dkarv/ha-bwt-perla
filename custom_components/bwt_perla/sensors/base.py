@@ -13,6 +13,7 @@ from homeassistant.components.sensor import (
     SensorStateClass,
 )
 from homeassistant.const import (
+    EntityCategory,
     UnitOfVolume,
     UnitOfVolumeFlowRate,
 )
@@ -41,9 +42,14 @@ class BwtEntity(CoordinatorEntity[BwtCoordinator]):
         device_info: DeviceInfo,
         entry_id: str,
         key: str,
+        *,
+        entity_category: EntityCategory | None = None,
+        enabled_default: bool = True,
     ) -> None:
         """Initialize the common properties."""
         super().__init__(coordinator)
+        self._attr_entity_category = entity_category
+        self._attr_entity_registry_enabled_default = enabled_default
         self._attr_device_info = device_info
         self._attr_translation_key = key
         self._attr_has_entity_name = True
@@ -109,10 +115,22 @@ class SimpleSensor(BwtEntity, SensorEntity):
         key: str,
         extract,
         icon: str,
+        *,
+        state_class: SensorStateClass | None = None,
+        entity_category: EntityCategory | None = None,
+        enabled_default: bool = True,
     ) -> None:
         """Initialize the sensor with the common coordinator."""
-        super().__init__(coordinator, device_info, entry_id, key)
+        super().__init__(
+            coordinator,
+            device_info,
+            entry_id,
+            key,
+            entity_category=entity_category,
+            enabled_default=enabled_default,
+        )
         self._attr_icon = icon
+        self._attr_state_class = state_class
         self._extract = extract
         self._attr_native_value = self._extract(self.coordinator.data)
 
@@ -134,9 +152,13 @@ class SimpleBinarySensor(BwtEntity, BinarySensorEntity):
         key: str,
         extract,
         icon: str,
+        *,
+        entity_category: EntityCategory | None = None,
     ) -> None:
         """Initialize the binary sensor with the common coordinator."""
-        super().__init__(coordinator, device_info, entry_id, key)
+        super().__init__(
+            coordinator, device_info, entry_id, key, entity_category=entity_category
+        )
         self._attr_icon = icon
         self._extract = extract
         self._attr_is_on = self._extract(self.coordinator.data)
@@ -180,11 +202,31 @@ class UnitSensor(SimpleSensor):
         unit: str,
         icon: str,
         display_precision: int | None = None,
+        *,
+        state_class: SensorStateClass | None = SensorStateClass.MEASUREMENT,
+        device_class: SensorDeviceClass | None = None,
+        entity_category: EntityCategory | None = None,
+        enabled_default: bool = True,
     ) -> None:
-        """Initialize the sensor."""
-        super().__init__(coordinator, device_info, entry_id, key, extract, icon)
+        """Initialize the sensor.
+
+        state_class defaults to MEASUREMENT; pass TOTAL_INCREASING for lifetime
+        counters.
+        """
+        super().__init__(
+            coordinator,
+            device_info,
+            entry_id,
+            key,
+            extract,
+            icon,
+            state_class=state_class,
+            entity_category=entity_category,
+            enabled_default=enabled_default,
+        )
         self._attr_native_unit_of_measurement = unit
-        self._attr_state_class = SensorStateClass.MEASUREMENT
+        if device_class is not None:
+            self._attr_device_class = device_class
         self._attr_suggested_display_precision = display_precision
 
 
@@ -293,19 +335,24 @@ class UnknownSensor(BwtEntity, SensorEntity):
         device_info: DeviceInfo,
         entry_id: str,
         index: int,
-        friendly_name: str | None = None,
         unit: str | None = None,
         icon: str = _UNKNOWN,
     ) -> None:
-        """Initialize the sensor with the common coordinator."""
-        super().__init__(coordinator, device_info, entry_id, f"silk_register_{index}")
+        """Initialize the sensor with the common coordinator.
+
+        Raw registers are diagnostic and disabled by default. The name comes
+        from the ``silk_register_<index>`` translation.
+        """
+        super().__init__(
+            coordinator,
+            device_info,
+            entry_id,
+            f"silk_register_{index}",
+            entity_category=EntityCategory.DIAGNOSTIC,
+            enabled_default=False,
+        )
         self._index = index
         self._attr_icon = icon
-        if friendly_name:
-            # Override translation so UI shows the mapped name.
-            self._attr_translation_key = None
-            self._attr_name = friendly_name
-            self._attr_has_entity_name = True
         if unit:
             self._attr_native_unit_of_measurement = unit
         self._attr_native_value = coordinator.data.get_register(index)
