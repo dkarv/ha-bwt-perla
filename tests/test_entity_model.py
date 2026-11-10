@@ -32,7 +32,9 @@ HOLIDAY_EPOCH = 1_900_000_000
 
 def _entry(model: BwtModel, **extra):
     data = {CONF_HOST: HOST, "model": model.name, **extra}
-    return MockConfigEntry(domain=DOMAIN, version=3, title="BWT", data=data)
+    return MockConfigEntry(
+        domain=DOMAIN, version=3, minor_version=2, title="BWT", data=data
+    )
 
 
 def _local_response(holiday_mode: int = HOLIDAY_EPOCH) -> CurrentResponse:
@@ -166,11 +168,9 @@ async def _setup_local(hass, holiday_mode=HOLIDAY_EPOCH):
     return entry
 
 
-def _reg(hass, entry, key):
+def _reg(hass, entry, key, domain="sensor"):
     registry = er.async_get(hass)
-    entity_id = registry.async_get_entity_id(
-        "sensor", DOMAIN, f"{entry.entry_id}_{key}"
-    )
+    entity_id = registry.async_get_entity_id(domain, DOMAIN, f"{entry.entry_id}_{key}")
     assert entity_id, key
     return registry.async_get(entity_id)
 
@@ -296,6 +296,16 @@ UPSTREAM_SILK_KEYS = (
 )
 
 
+# Keys that upstream registers as sensor.* but this branch moves to binary_sensor.*.
+MOVED_BINARY_KEYS = {
+    "holiday_mode",
+    "buzzer",
+    "aqa_watch",
+    "aqa_max_flow",
+    "aqa_max_volume",
+}
+
+
 async def _assert_ids_match_upstream(hass, entry, expected):
     registry = er.async_get(hass)
     entries = er.async_entries_for_config_entry(registry, entry.entry_id)
@@ -303,7 +313,9 @@ async def _assert_ids_match_upstream(hass, entry, expected):
     assert actual == set(expected)
     for e in entries:
         key = e.unique_id.removeprefix(f"{entry.entry_id}_")
-        assert e.entity_id == f"sensor.{DOMAIN}_{key}"
+        # Binary sensors moved to their own platform; the slug is unchanged.
+        domain = "binary_sensor" if key in MOVED_BINARY_KEYS else "sensor"
+        assert e.entity_id == f"{domain}.{DOMAIN}_{key}"
 
 
 async def test_entity_ids_unchanged(hass):
@@ -337,7 +349,12 @@ async def test_smartdos_categories_and_rssi(hass):
         "aqa_max_flow",
         "aqa_max_volume",
     ):
-        reg = _reg(hass, entry, key)
+        domain = (
+            "sensor"
+            if key in ("wifi_ssid", "wifi_rssi", "mac_address")
+            else "binary_sensor"
+        )
+        reg = _reg(hass, entry, key, domain)
         assert reg.entity_category is EntityCategory.DIAGNOSTIC, key
         assert reg.disabled_by is None, key
 

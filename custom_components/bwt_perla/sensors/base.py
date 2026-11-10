@@ -2,14 +2,15 @@
 import logging
 
 from bwt_api.api import treated_to_blended
+from bwt_api.bwt import BwtModel
 from bwt_api.data import BwtStatus
 
-from homeassistant.components.binary_sensor import BinarySensorEntity
 from homeassistant.components.sensor import (
     SensorDeviceClass,
     SensorEntity,
     SensorStateClass,
 )
+from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
     EntityCategory,
     UnitOfVolume,
@@ -32,8 +33,34 @@ _WATER_CHECK = "mdi:water-check"
 _HOLIDAY = "mdi:location-exit"
 _UNKNOWN = "mdi:help-circle"
 
+def build_device_info(coordinator: BwtCoordinator, entry: ConfigEntry) -> DeviceInfo:
+    """Build the device info shared by all platforms of a config entry."""
+    model_suffix = coordinator.get_model_suffix()
+    return DeviceInfo(
+        configuration_url=None,
+        connections=set(),
+        entry_type=None,
+        hw_version=coordinator.get_hardware_version(),
+        identifiers={(DOMAIN, entry.entry_id)},
+        manufacturer="BWT",
+        # SmartDos is a separate product line, not a Perla variant.
+        model=(
+            model_suffix
+            if coordinator.model == BwtModel.SMART_DOS
+            else f"Perla {model_suffix}"
+        ),
+        name=entry.title,
+        serial_number=None,
+        suggested_area=None,
+        sw_version=coordinator.get_firmware_version(),
+    )
+
+
 class BwtEntity(CoordinatorEntity[BwtCoordinator]):
     """General bwt entity with common properties."""
+
+    # Entity platform domain, used for the stable ``<domain>.bwt_perla_<key>`` id.
+    _entity_domain = "sensor"
 
     def __init__(
         self,
@@ -52,7 +79,7 @@ class BwtEntity(CoordinatorEntity[BwtCoordinator]):
         self._attr_device_info = device_info
         self._attr_translation_key = key
         self._attr_has_entity_name = True
-        self.entity_id = f"sensor.{DOMAIN}_{key}"
+        self.entity_id = f"{self._entity_domain}.{DOMAIN}_{key}"
         self._attr_unique_id = entry_id + "_" + key
 
 
@@ -140,36 +167,6 @@ class SimpleSensor(BwtEntity, SensorEntity):
         self.async_write_ha_state()
 
 
-class SimpleBinarySensor(BwtEntity, BinarySensorEntity):
-    """Simple binary sensor with extract function."""
-
-    def __init__(
-        self,
-        coordinator: BwtCoordinator,
-        device_info: DeviceInfo,
-        entry_id: str,
-        key: str,
-        extract,
-        icon: str,
-        *,
-        entity_category: EntityCategory | None = None,
-    ) -> None:
-        """Initialize the binary sensor with the common coordinator."""
-        super().__init__(
-            coordinator, device_info, entry_id, key, entity_category=entity_category
-        )
-        self._attr_icon = icon
-        self._extract = extract
-        self._attr_is_on = self._extract(self.coordinator.data)
-
-    @callback
-    def _handle_coordinator_update(self) -> None:
-        """Handle updated data from the coordinator."""
-        self._attr_is_on = self._extract(self.coordinator.data)
-        self.async_write_ha_state()
-
-
-
 class DeviceClassSensor(SimpleSensor):
     """Basic sensor specifying a device class."""
 
@@ -245,23 +242,6 @@ class StateSensor(BwtEntity, SensorEntity):
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""
         self._attr_native_value = self.coordinator.data.state().name
-        self.async_write_ha_state()
-
-
-class HolidayModeSensor(BwtEntity, BinarySensorEntity):
-    """Current holiday mode state."""
-
-    _attr_icon = _HOLIDAY
-
-    def __init__(self, coordinator, device_info: DeviceInfo, entry_id: str) -> None:
-        """Initialize the sensor with the common coordinator."""
-        super().__init__(coordinator, device_info, entry_id, "holiday_mode")
-        self._attr_is_on = self.coordinator.data.holiday_mode() == 1
-
-    @callback
-    def _handle_coordinator_update(self) -> None:
-        """Handle updated data from the coordinator."""
-        self._attr_is_on = self.coordinator.data.holiday_mode() == 1
         self.async_write_ha_state()
 
 
