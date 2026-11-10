@@ -30,12 +30,14 @@ It might work with other device types that offer compatible local apis. Please o
 
 ### Entities
 
+The binary sensors `holiday_mode` (Perla) and `buzzer`, `aqa_watch`, `aqa_max_flow`, `aqa_max_volume` (SmartDos), and `allow_salt_type_change`, `allow_regen_time_change` (Silk) are `binary_sensor` entities, e.g. `binary_sensor.bwt_perla_holiday_mode`. Earlier versions registered them in the `sensor` domain (`sensor.bwt_perla_*`). On upgrade the integration moves them automatically, keeping the entity name part, name, icon, area, labels, hidden/disabled state and voice assistant exposure, and shows a notice in the Home Assistant UI (Settings > Repairs) listing the entity IDs that changed. The history of the old `sensor.` entity ID is not carried over, and automations, scripts and dashboards that reference the old IDs (e.g. `sensor.bwt_perla_holiday_mode`) must be updated manually. All other entities, including `sensor.bwt_perla_errors` and `sensor.bwt_perla_warnings`, are unchanged.
+
 | Entity Id(s) | Information |
 | ------------- | ------------- |
 | total_output | Increasing value of the blended water = the total water consumed. Use this as water source on the energy dashboard. |
 | errors, warnings | The fatal errors and non-fatal warnings. Displays a comma-separated list of translated error/warning messages. Raw error codes are available in the entity attributes (`error_codes` or `warning_codes`) for use in automations. Empty if no errors/warnings present. [List of error codes](https://github.com/dkarv/bwt_api/blob/main/src/bwt_api/error.py). |
 | state | State of the device. Can be OK, WARNING, ERROR |
-| holiday_mode | If the holiday mode is active (true) or not (false) |
+| holiday_mode | `binary_sensor`: if the holiday mode is active (on) or not (off). Previously a `sensor`; see the note above the table. |
 | holiday_mode_start | Undefined or a timestamp if the holiday mode is set to start in the future |
 | hardness_in, hardness_out | dH value of the incoming and outgoing water. Note that this value is not measured, but configured on the device during setup |
 | customer_service, technician_service | Timestamp of the last service performed by the customer or technician. The timezone of BWT device and HA server must be the same for this to be correct |

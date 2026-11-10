@@ -131,15 +131,15 @@ async def _setup_local(hass, holiday_mode=HOLIDAY_EPOCH):
     return entry
 
 
-def _reg(hass, entry, key):
+def _reg(hass, entry, key, domain="sensor"):
     registry = er.async_get(hass)
-    entity_id = registry.async_get_entity_id("sensor", DOMAIN, f"{entry.entry_id}_{key}")
+    entity_id = registry.async_get_entity_id(domain, DOMAIN, f"{entry.entry_id}_{key}")
     assert entity_id, key
     return registry.async_get(entity_id)
 
 
-def _sensor_attrs(hass, entry, key):
-    reg = _reg(hass, entry, key)
+def _sensor_attrs(hass, entry, key, domain="sensor"):
+    reg = _reg(hass, entry, key, domain)
     return reg, hass.states.get(reg.entity_id)
 
 
@@ -169,9 +169,17 @@ async def test_smartdos_categories_and_rssi(hass):
     entry = _entry(BwtModel.SMART_DOS)
     await _setup(hass, entry, "BwtSmartDosApi", api)
 
-    for key in ("wifi_ssid", "wifi_rssi", "mac_address",
-                "buzzer", "aqa_watch", "aqa_max_flow", "aqa_max_volume"):
-        reg = _reg(hass, entry, key)
+    for key, domain in (
+        ("wifi_ssid", "sensor"),
+        ("wifi_rssi", "sensor"),
+        ("mac_address", "sensor"),
+        ("buzzer", "binary_sensor"),
+        ("aqa_watch", "binary_sensor"),
+        ("aqa_max_flow", "binary_sensor"),
+        ("aqa_max_volume", "binary_sensor"),
+    ):
+        reg = _reg(hass, entry, key, domain)
+        assert reg.entity_id == f"{domain}.bwt_perla_{key}", key
         assert reg.entity_category is EntityCategory.DIAGNOSTIC, key
         assert reg.disabled_by is None, key
 
@@ -227,7 +235,8 @@ async def test_silk_categories_and_state_classes(hass):
     assert reg.disabled_by is None
     assert reg.original_name == "Device ranking"
     assert state.state == "1"
-    reg, state = _sensor_attrs(hass, entry, "allow_salt_type_change")
+    reg, state = _sensor_attrs(hass, entry, "allow_salt_type_change", "binary_sensor")
+    assert reg.entity_id == "binary_sensor.bwt_perla_allow_salt_type_change"
     assert reg.entity_category is EntityCategory.DIAGNOSTIC
     assert state.state == "on"
 
@@ -275,7 +284,7 @@ async def test_silk_register_entities_migrate_to_named_sensors(hass):
         await hass.async_block_till_done()
 
     assert entry.state is ConfigEntryState.LOADED
-    assert (entry.version, entry.minor_version) == (3, 2)
+    assert (entry.version, entry.minor_version) == (3, 3)
     migrated = registry.async_get(old.entity_id)
     assert migrated.unique_id == f"{entry.entry_id}_salt_type"
     assert registry.async_get_entity_id(
