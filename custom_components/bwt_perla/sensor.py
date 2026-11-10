@@ -264,7 +264,7 @@ async def async_setup_entry(
         entities.append(UnitSensor(coordinator, device_info, config_entry.entry_id, "dosing_total", lambda data: data.dosing_total(), UnitOfVolume.MILLILITERS, _OIL_LEVEL, 0, state_class=SensorStateClass.TOTAL_INCREASING))
         # Network
         entities.append(SimpleSensor(coordinator, device_info, config_entry.entry_id, "wifi_ssid", lambda data: data.wifi_ssid(), _UNKNOWN, entity_category=EntityCategory.DIAGNOSTIC))
-        entities.append(UnitSensor(coordinator, device_info, config_entry.entry_id, "wifi_rssi", lambda data: data.wifi_rssi(), SIGNAL_STRENGTH_DECIBELS_MILLIWATT, "mdi:wifi", 0, device_class=SensorDeviceClass.SIGNAL_STRENGTH, entity_category=EntityCategory.DIAGNOSTIC))
+        entities.append(UnitSensor(coordinator, device_info, config_entry.entry_id, "wifi_rssi", lambda data: data.wifi_rssi(), SIGNAL_STRENGTH_DECIBELS_MILLIWATT, "mdi:wifi", 0, device_class=SensorDeviceClass.SIGNAL_STRENGTH, entity_category=EntityCategory.DIAGNOSTIC, enabled_default=False))
         # MAC
         entities.append(SimpleSensor(coordinator, device_info, config_entry.entry_id, "mac_address", lambda data: data.mac_address(), _UNKNOWN, entity_category=EntityCategory.DIAGNOSTIC))
         # Totals
