@@ -73,26 +73,12 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     """Handle a config flow for BWT Perla."""
 
     VERSION = 3
-    MINOR_VERSION = 2
-
-    async def _async_set_unique_id(self, host: str) -> None:
-        """Key the entry on the host (bwt_api exposes no device id for all models)."""
-        await self.async_set_unique_id(host.lower())
-        self._abort_if_unique_id_configured()
 
     def _async_finish_reconfigure(self, data: dict[str, Any]) -> FlowResult:
-        """Store the new data and re-key the entry on the (possibly new) host."""
-        current = self._get_reconfigure_entry()
-        unique_id = data[CONF_HOST].lower()
-        other = self.hass.config_entries.async_entry_for_domain_unique_id(
-            self.handler, unique_id
-        )
-        if other is not None and other.entry_id != current.entry_id:
-            return self.async_abort(reason="already_configured")
+        """Store the new data on the entry being reconfigured."""
         return self.async_update_reload_and_abort(
-            current,
+            self._get_reconfigure_entry(),
             data=data,
-            unique_id=unique_id,
             reason="reconfiguration_successful",
         )
 
@@ -103,7 +89,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         errors: dict[str, str] = {}
         if user_input is not None:
             # Outside the try block: the abort must not be swallowed below.
-            await self._async_set_unique_id(user_input[CONF_HOST])
+            self._async_abort_entries_match({CONF_HOST: user_input[CONF_HOST]})
             try:
                 info = await validate_input(self.hass, user_input)
                 match info["model"]:
@@ -210,6 +196,9 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         current = self._get_reconfigure_entry()
         errors: dict[str, str] = {}
         if user_input is not None:
+            # Does not match the entry being reconfigured; outside the try block
+            # so the abort is not swallowed below.
+            self._async_abort_entries_match({CONF_HOST: user_input[CONF_HOST]})
             try:
                 info = await validate_input(self.hass, user_input)
                 match info["model"]:

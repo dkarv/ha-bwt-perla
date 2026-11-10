@@ -6,7 +6,7 @@ from bwt_api.api import BwtApi, BwtSilkApi, BwtSmartDosApi
 from bwt_api.bwt import BwtModel
 
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import Platform, CONF_CODE, CONF_HOST
+from homeassistant.const import Platform, CONF_CODE
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.exceptions import ConfigEntryNotReady
 from homeassistant.helpers.entity_registry import async_migrate_entries
@@ -115,26 +115,6 @@ async def async_migrate_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
                 )
         
         hass.config_entries.async_update_entry(entry, version=3)
-
-    # Entries created before unique ids were introduced are keyed on their host.
-    if entry.version == 3 and entry.minor_version < 2:
-        unique_id = entry.data[CONF_HOST].lower()
-        existing = hass.config_entries.async_entry_for_domain_unique_id(
-            entry.domain, unique_id
-        )
-        if existing is not None and existing.entry_id != entry.entry_id:
-            _LOGGER.warning(
-                "Not setting unique id %s on %s: already used by another entry",
-                unique_id,
-                entry.title,
-            )
-            unique_id = None
-        if unique_id is None:
-            hass.config_entries.async_update_entry(entry, minor_version=2)
-        else:
-            hass.config_entries.async_update_entry(
-                entry, unique_id=unique_id, minor_version=2
-            )
 
     _LOGGER.info("Migration to version %s.%s successful", entry.version, entry.minor_version)
 

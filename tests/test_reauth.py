@@ -10,7 +10,6 @@ from homeassistant.helpers.update_coordinator import UpdateFailed
 import pytest
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from custom_components.bwt_perla import async_migrate_entry
 from custom_components.bwt_perla.const import DOMAIN
 from custom_components.bwt_perla.coordinator import BwtCoordinator
 
@@ -114,34 +113,6 @@ async def test_setup_and_unload_use_runtime_data(hass):
 
             assert await hass.config_entries.async_unload(entry.entry_id)
             api.close.assert_awaited_once()
-
-
-async def test_migration_backfills_unique_id(hass):
-    """Entries created before unique ids existed get one derived from the host."""
-    entry = _entry()
-    entry.add_to_hass(hass)
-    assert entry.unique_id is None
-    assert entry.minor_version == 1
-
-    assert await async_migrate_entry(hass, entry)
-
-    assert entry.unique_id == "192.168.1.50"
-    assert entry.minor_version == 2
-
-
-async def test_migration_skips_unique_id_on_collision(hass):
-    """A second entry for the same host keeps no unique id instead of erroring."""
-    first = _entry()
-    first.add_to_hass(hass)
-    second = _entry()
-    second.add_to_hass(hass)
-
-    assert await async_migrate_entry(hass, first)
-    assert await async_migrate_entry(hass, second)
-
-    assert first.unique_id == "192.168.1.50"
-    assert second.unique_id is None
-    assert second.minor_version == 2
 
 
 async def test_smartdos_requests_run_sequentially(hass):
