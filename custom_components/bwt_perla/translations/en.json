@@ -123,9 +123,6 @@
             "dosing_total": {
                 "name": "Total dosing means used"
             },
-            "comm_date": {
-                "name": "Last communication date"
-            },
             "remaining_capacity_pct": {
                 "name": "Remaining capacity percent"
             },
