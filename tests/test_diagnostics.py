@@ -75,3 +75,20 @@ async def test_diagnostics_silk_drops_unknown_status_fields(hass):
         "gitver": 3,
         "productCode": "SILK",
     }
+
+
+async def test_diagnostics_silk_exports_only_numeric_registers(hass):
+    """The named Silk register sensors read the same raw list that is exported.
+
+    It must stay a plain list of integers: a register that carried text or
+    identifiers would have to be redacted explicitly.
+    """
+    entry = _entry(BwtModel.PERLA_SILK)
+    await _setup(hass, entry, "BwtSilkApi", _silk_api())
+    diag = await async_get_config_entry_diagnostics(hass, entry)
+    assert set(diag["data"]) == {"registers", "status"}
+    assert diag["data"]["registers"]
+    assert all(
+        isinstance(value, int) and not isinstance(value, bool)
+        for value in diag["data"]["registers"]
+    )
