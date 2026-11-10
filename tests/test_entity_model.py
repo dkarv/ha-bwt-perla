@@ -169,6 +169,18 @@ async def test_local_state_classes(hass):
         assert state.attributes.get("state_class") == expected, key
 
 
+async def test_mass_and_volume_device_classes(hass):
+    entry = await _setup_local(hass)
+    _, state = _sensor_attrs(hass, entry, "regenerativ_mass")
+    assert state.attributes["device_class"] == SensorDeviceClass.WEIGHT
+    assert state.attributes["unit_of_measurement"] == "g"
+    # dosing_total deliberately has no VOLUME class: HA would convert mL to
+    # fl. oz. for US customary users.
+    _, state = _sensor_attrs(hass, entry, "dosing_total")
+    assert "device_class" not in state.attributes
+    assert state.attributes["unit_of_measurement"] == "mL"
+
+
 async def test_entity_ids_unchanged(hass):
     entry = await _setup_local(hass)
     assert _reg(hass, entry, "regenerativ_mass").entity_id == "sensor.bwt_perla_regenerativ_mass"

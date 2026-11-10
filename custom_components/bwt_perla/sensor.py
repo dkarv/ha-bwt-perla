@@ -158,6 +158,7 @@ async def async_setup_entry(
                 UnitOfMass.GRAMS,
                 _MASS,
                 state_class=SensorStateClass.TOTAL_INCREASING,
+                device_class=SensorDeviceClass.WEIGHT,
             )
         )
         entities.append(
