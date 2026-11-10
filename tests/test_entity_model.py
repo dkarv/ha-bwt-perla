@@ -136,8 +136,21 @@ def _silk_api():
     return api
 
 
-async def _setup(hass, entry, api_name, api):
+def _pre_enable(hass, entry, key):
+    """Pre-create an enabled registry entry so a disabled-by-default entity loads."""
+    er.async_get(hass).async_get_or_create(
+        "sensor",
+        DOMAIN,
+        f"{entry.entry_id}_{key}",
+        config_entry=entry,
+        suggested_object_id=f"{DOMAIN}_{key}",
+    )
+
+
+async def _setup(hass, entry, api_name, api, enable=()):
     entry.add_to_hass(hass)
+    for key in enable:
+        _pre_enable(hass, entry, key)
     with patch(f"custom_components.bwt_perla.{api_name}", return_value=api):
         await hass.config_entries.async_setup(entry.entry_id)
         await hass.async_block_till_done()
@@ -194,7 +207,7 @@ async def test_entity_ids_unchanged(hass):
 async def test_smartdos_categories_and_rssi(hass):
     api = _smartdos_api()
     entry = _entry(BwtModel.SMART_DOS)
-    await _setup(hass, entry, "BwtSmartDosApi", api)
+    await _setup(hass, entry, "BwtSmartDosApi", api, enable=("wifi_rssi",))
 
     for key in (
         "wifi_ssid",
@@ -223,6 +236,17 @@ async def test_smartdos_categories_and_rssi(hass):
     assert state.attributes["state_class"] == SensorStateClass.MEASUREMENT
 
 
+async def test_smartdos_rssi_disabled_by_default(hass):
+    """wifi_rssi refreshes every ~30 s, so it must be opt-in."""
+    entry = _entry(BwtModel.SMART_DOS)
+    await _setup(hass, entry, "BwtSmartDosApi", _smartdos_api())
+    reg = _reg(hass, entry, "wifi_rssi")
+    assert reg.disabled_by is er.RegistryEntryDisabler.INTEGRATION
+    assert hass.states.get(reg.entity_id) is None
+    # The other diagnostic entities stay enabled.
+    assert _reg(hass, entry, "wifi_ssid").disabled_by is None
+
+
 async def test_smartdos_rssi_falls_back_to_raw(hass):
     api = _smartdos_api()
     api.get_wifi_info = AsyncMock(
@@ -241,7 +265,7 @@ async def test_smartdos_rssi_falls_back_to_raw(hass):
         )
     )
     entry = _entry(BwtModel.SMART_DOS)
-    await _setup(hass, entry, "BwtSmartDosApi", api)
+    await _setup(hass, entry, "BwtSmartDosApi", api, enable=("wifi_rssi",))
     _, state = _sensor_attrs(hass, entry, "wifi_rssi")
     assert state.state == "-70.0"
 
