@@ -141,7 +141,7 @@ async def test_reconfigure_flow(hass):
     with (
         _patch_model(BwtModel.PERLA_LOCAL_API),
         _patch_local_api(_mock_api()),
-        patch.object(hass.config_entries, "async_reload", AsyncMock()),
+        patch.object(hass.config_entries, "async_schedule_reload"),
     ):
         result = await hass.config_entries.flow.async_configure(
             result["flow_id"], {CONF_HOST: "192.168.1.51"}
@@ -228,3 +228,119 @@ async def test_reauth_non_local_model_aborts(hass):
     assert result["type"] is FlowResultType.ABORT
     assert result["reason"] == "reauth_unsupported_model"
     assert entry.data[CONF_CODE] == "old-code"
+
+
+async def test_duplicate_host_aborts(hass):
+    """A second user flow for an already configured host aborts."""
+    MockConfigEntry(domain=DOMAIN, version=3, data={CONF_HOST: HOST}).add_to_hass(hass)
+    result = await hass.config_entries.flow.async_init(
+        DOMAIN, context={"source": config_entries.SOURCE_USER}
+    )
+    with _patch_model(BwtModel.PERLA_SILK), patch(
+        "custom_components.bwt_perla.config_flow.BwtSilkApi", return_value=_mock_api()
+    ):
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"], {CONF_HOST: HOST}
+        )
+    assert result["type"] is FlowResultType.ABORT
+    assert result["reason"] == "already_configured"
+
+
+async def test_user_flow_new_host_with_other_entry_creates(hass):
+    """A different host is not treated as a duplicate."""
+    MockConfigEntry(domain=DOMAIN, version=3, data={CONF_HOST: HOST}).add_to_hass(hass)
+    result = await hass.config_entries.flow.async_init(
+        DOMAIN, context={"source": config_entries.SOURCE_USER}
+    )
+    with _patch_model(BwtModel.PERLA_SILK), patch(
+        "custom_components.bwt_perla.config_flow.BwtSilkApi", return_value=_mock_api()
+    ), patch("custom_components.bwt_perla.async_setup_entry", return_value=True):
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"], {CONF_HOST: "192.168.1.99"}
+        )
+    assert result["type"] is FlowResultType.CREATE_ENTRY
+    assert result["data"][CONF_HOST] == "192.168.1.99"
+
+
+async def test_reconfigure_to_other_entrys_host_aborts(hass):
+    """Reconfiguring onto a host another entry owns aborts and changes nothing."""
+    entry = _entry()
+    entry.add_to_hass(hass)
+    MockConfigEntry(
+        domain=DOMAIN, version=3, data={CONF_HOST: "192.168.1.51"}
+    ).add_to_hass(hass)
+    result = await entry.start_reconfigure_flow(hass)
+    with (
+        _patch_model(BwtModel.PERLA_LOCAL_API),
+        _patch_local_api(_mock_api()),
+        patch.object(hass.config_entries, "async_schedule_reload") as reload,
+    ):
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"], {CONF_HOST: "192.168.1.51"}
+        )
+    assert result["type"] is FlowResultType.ABORT
+    assert result["reason"] == "already_configured"
+    assert entry.data[CONF_HOST] == HOST
+    reload.assert_not_called()
+
+
+async def test_reconfigure_same_host_succeeds(hass):
+    """Keeping the entry's own host is not a duplicate."""
+    entry = _entry()
+    entry.add_to_hass(hass)
+    result = await entry.start_reconfigure_flow(hass)
+    with (
+        _patch_model(BwtModel.PERLA_LOCAL_API),
+        _patch_local_api(_mock_api()),
+        patch.object(hass.config_entries, "async_schedule_reload"),
+    ):
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"], {CONF_HOST: HOST}
+        )
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"], {CONF_CODE: "new-code"}
+        )
+    assert result["type"] is FlowResultType.ABORT
+    assert result["reason"] == "reconfiguration_successful"
+    assert entry.data[CONF_CODE] == "new-code"
+
+
+async def test_reconfigure_to_new_host_succeeds(hass):
+    """Moving to a free host updates the entry (local API, with code step)."""
+    entry = _entry()
+    entry.add_to_hass(hass)
+    MockConfigEntry(domain=DOMAIN, version=3, data={CONF_HOST: "10.0.0.9"}).add_to_hass(hass)
+    result = await entry.start_reconfigure_flow(hass)
+    with (
+        _patch_model(BwtModel.PERLA_LOCAL_API),
+        _patch_local_api(_mock_api()),
+        patch.object(hass.config_entries, "async_schedule_reload"),
+    ):
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"], {CONF_HOST: "192.168.1.51"}
+        )
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"], {CONF_CODE: "c"}
+        )
+    assert result["reason"] == "reconfiguration_successful"
+    assert entry.data[CONF_HOST] == "192.168.1.51"
+
+
+async def test_reconfigure_silk_to_new_host_succeeds(hass):
+    """The non-code branch of reconfigure also updates the host."""
+    entry = _entry()
+    entry.add_to_hass(hass)
+    result = await entry.start_reconfigure_flow(hass)
+    with (
+        _patch_model(BwtModel.PERLA_SILK),
+        patch(
+            "custom_components.bwt_perla.config_flow.BwtSilkApi",
+            return_value=_mock_api(),
+        ),
+        patch.object(hass.config_entries, "async_schedule_reload"),
+    ):
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"], {CONF_HOST: "other.local"}
+        )
+    assert result["reason"] == "reconfiguration_successful"
+    assert entry.data[CONF_HOST] == "other.local"

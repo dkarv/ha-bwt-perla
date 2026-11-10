@@ -70,7 +70,7 @@ async def test_coordinator_wrong_code_raises_auth_failed(hass):
     """WrongCodeException during an update is not wrapped into UpdateFailed."""
     api = MagicMock()
     api.get_current_data = AsyncMock(side_effect=WrongCodeException("bad"))
-    coordinator = BwtCoordinator(hass, api, BwtModel.PERLA_LOCAL_API)
+    coordinator = BwtCoordinator(hass, _entry(), api, BwtModel.PERLA_LOCAL_API)
     with pytest.raises(ConfigEntryAuthFailed):
         await coordinator._async_update_data()
 
@@ -79,6 +79,96 @@ async def test_coordinator_other_bwt_error_is_update_failed(hass):
     """Other BwtExceptions keep being reported as UpdateFailed."""
     api = MagicMock()
     api.get_current_data = AsyncMock(side_effect=BwtException("down"))
-    coordinator = BwtCoordinator(hass, api, BwtModel.PERLA_LOCAL_API)
+    coordinator = BwtCoordinator(hass, _entry(), api, BwtModel.PERLA_LOCAL_API)
     with pytest.raises(UpdateFailed):
         await coordinator._async_update_data()
+
+
+async def test_setup_and_unload_use_runtime_data(hass):
+    """The coordinator lives in entry.runtime_data and unload closes the api."""
+    entry = _entry()
+    entry.add_to_hass(hass)
+
+    data = MagicMock()
+    api = MagicMock()
+    api.get_current_data = AsyncMock(return_value=data)
+    api.close = AsyncMock()
+    with patch("custom_components.bwt_perla.BwtApi", return_value=api), patch(
+        "custom_components.bwt_perla.coordinator.LocalApiData"
+    ) as data_cls:
+        data_cls.return_value.current_flow.return_value = 0
+        with patch.object(
+            hass.config_entries, "async_forward_entry_setups", AsyncMock()
+        ), patch.object(
+            hass.config_entries, "async_unload_platforms", AsyncMock(return_value=True)
+        ):
+            assert await hass.config_entries.async_setup(entry.entry_id)
+            await hass.async_block_till_done()
+            assert entry.state is ConfigEntryState.LOADED
+            coordinator = entry.runtime_data
+            assert isinstance(coordinator, BwtCoordinator)
+            assert coordinator.config_entry is entry
+            assert coordinator.model is BwtModel.PERLA_LOCAL_API
+            assert DOMAIN not in hass.data
+
+            assert await hass.config_entries.async_unload(entry.entry_id)
+            api.close.assert_awaited_once()
+
+
+async def test_smartdos_requests_run_sequentially(hass):
+    """The six SmartDos requests are issued one after another, never overlapping."""
+    import asyncio
+
+    active = 0
+    max_active = 0
+    calls = []
+
+    def make(name):
+        async def fetch():
+            nonlocal active, max_active
+            active += 1
+            max_active = max(max_active, active)
+            calls.append(name)
+            await asyncio.sleep(0)
+            active -= 1
+            return MagicMock()
+
+        return fetch
+
+    names = [
+        "get_device_info",
+        "get_configuration",
+        "get_remaining_capacity",
+        "get_treated_water",
+        "get_substance_dosage",
+        "get_wifi_info",
+    ]
+    api = MagicMock()
+    for name in names:
+        setattr(api, name, make(name))
+    coordinator = BwtCoordinator(hass, _entry(), api, BwtModel.SMART_DOS)
+    with patch("custom_components.bwt_perla.coordinator.SmartDosApiData") as data_cls:
+        data_cls.return_value.current_flow.return_value = 0
+        await coordinator._async_update_data()
+    assert calls == names
+    assert max_active == 1
+
+
+async def test_setup_closes_api_when_platform_setup_fails(hass):
+    """A failing platform forward must not leak the api session."""
+    entry = _entry()
+    entry.add_to_hass(hass)
+    api = MagicMock()
+    api.get_current_data = AsyncMock(return_value=MagicMock())
+    api.close = AsyncMock()
+    with (
+        patch("custom_components.bwt_perla.BwtApi", return_value=api),
+        patch.object(
+            hass.config_entries,
+            "async_forward_entry_setups",
+            AsyncMock(side_effect=RuntimeError("boom")),
+        ),
+        patch("custom_components.bwt_perla.coordinator.LocalApiData"),
+    ):
+        await hass.config_entries.async_setup(entry.entry_id)
+    api.close.assert_awaited()

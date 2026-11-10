@@ -74,6 +74,13 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
     VERSION = 3
 
+    def _async_finish_reconfigure(self, data: dict[str, Any]) -> FlowResult:
+        """Store the new data on the entry being reconfigured."""
+        return self.async_update_reload_and_abort(
+            self._get_reconfigure_entry(),
+            data=data,
+            reason="reconfiguration_successful",
+        )
 
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None
@@ -81,6 +88,8 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         """Handle the initial step."""
         errors: dict[str, str] = {}
         if user_input is not None:
+            # Outside the try block: the abort must not be swallowed below.
+            self._async_abort_entries_match({CONF_HOST: user_input[CONF_HOST]})
             try:
                 info = await validate_input(self.hass, user_input)
                 match info["model"]:
@@ -118,10 +127,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 # If this flow was started as a reconfiguration, update the
                 # existing entry instead of creating a new one.
                 if self.source == "reconfigure":
-                    current = self._get_reconfigure_entry()
-                    self.hass.config_entries.async_update_entry(current, data=user_input)
-                    await self.hass.config_entries.async_reload(current.entry_id)
-                    return self.async_abort(reason="reconfiguration_successful")
+                    return self._async_finish_reconfigure(user_input)
                 return self.async_create_entry(title=info["title"], data=user_input)
             except ConnectException:
                 _LOGGER.exception("Connection error setting up the Bwt Api")
@@ -190,6 +196,9 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         current = self._get_reconfigure_entry()
         errors: dict[str, str] = {}
         if user_input is not None:
+            # Does not match the entry being reconfigured; outside the try block
+            # so the abort is not swallowed below.
+            self._async_abort_entries_match({CONF_HOST: user_input[CONF_HOST]})
             try:
                 info = await validate_input(self.hass, user_input)
                 match info["model"]:
@@ -199,9 +208,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                         return await self.async_step_code()
                     case BwtModel.PERLA_SILK | BwtModel.SMART_DOS:
                         user_input["model"] = info["model"].name
-                        self.hass.config_entries.async_update_entry(current, data=user_input)
-                        await self.hass.config_entries.async_reload(current.entry_id)
-                        return self.async_abort(reason="reconfiguration_successful")
+                        return self._async_finish_reconfigure(user_input)
                     case _:
                         errors["base"] = "unsupported_model"
             except ConnectException:

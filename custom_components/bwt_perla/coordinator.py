@@ -9,6 +9,7 @@ import logging
 from bwt_api.bwt import BwtModel
 from bwt_api.exception import BwtException, WrongCodeException
 
+from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryAuthFailed
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
@@ -25,15 +26,21 @@ _UPDATE_INTERVAL_MIN = 1
 _UPDATE_INTERVAL_MAX = 30
 
 
+type BwtConfigEntry = ConfigEntry["BwtCoordinator"]
+
+
 class BwtCoordinator(DataUpdateCoordinator[ApiData]):
     """Bwt coordinator."""
     model: BwtModel
 
-    def __init__(self, hass: HomeAssistant, api, model: BwtModel) -> None:
+    def __init__(
+        self, hass: HomeAssistant, config_entry: ConfigEntry, api, model: BwtModel
+    ) -> None:
         """Initialize my coordinator."""
         super().__init__(
             hass,
             _LOGGER,
+            config_entry=config_entry,
             # Name of the data. For logging purposes.
             name=DOMAIN,
             # Polling interval. Will only be polled if there are subscribers.
@@ -67,6 +74,8 @@ class BwtCoordinator(DataUpdateCoordinator[ApiData]):
                         status = {}
                     new_values = SilkApiData(registers, status)
                 elif self.model == BwtModel.SMART_DOS:
+                    # Sequential on purpose: the device's embedded server is not
+                    # known to handle concurrent requests.
                     device_info = await self.my_api.get_device_info()
                     configuration = await self.my_api.get_configuration()
                     remaining_capacity = await self.my_api.get_remaining_capacity()
