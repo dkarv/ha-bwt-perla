@@ -3,9 +3,12 @@ from bwt_api.bwt import BwtModel
 
 from homeassistant.components.sensor import (
     SensorDeviceClass,
+    SensorStateClass,
 )
 from homeassistant.const import (
+    EntityCategory,
     PERCENTAGE,
+    SIGNAL_STRENGTH_DECIBELS_MILLIWATT,
     UnitOfMass,
     UnitOfTime,
     UnitOfVolume,
@@ -36,6 +39,7 @@ _OIL_LEVEL = "mdi:oil-level"
 _WATER = "mdi:water"
 _WATER_CHECK = "mdi:water-check"
 _UNKNOWN = "mdi:help-circle"
+_SETTING = "mdi:cog-outline"
 
 
 async def async_setup_entry(
@@ -55,7 +59,8 @@ async def async_setup_entry(
         hw_version=coordinator.get_hardware_version(),
         identifiers={(DOMAIN, config_entry.entry_id)},
         manufacturer="BWT",
-        model=f'Perla {model_suffix}',
+        # SmartDos is a separate product line, not a Perla variant.
+        model=model_suffix if model == BwtModel.SMART_DOS else f"Perla {model_suffix}",
         name=config_entry.title,
         serial_number=None,
         suggested_area=None,
@@ -113,6 +118,7 @@ async def async_setup_entry(
                 "counter_regeneration_1",
                 lambda data: data.regeneration_count_1(),
                 _COUNTER,
+                state_class=SensorStateClass.TOTAL_INCREASING,
             ),
         ]
 
@@ -167,6 +173,7 @@ async def async_setup_entry(
                 lambda data: data.regenerativ_total(),
                 UnitOfMass.GRAMS,
                 _MASS,
+                state_class=SensorStateClass.TOTAL_INCREASING,
             )
         )
         entities.append(
@@ -243,6 +250,7 @@ async def async_setup_entry(
                 "counter_regeneration_2",
                 lambda data: data.regeneration_count_2(),
                 _COUNTER,
+                state_class=SensorStateClass.TOTAL_INCREASING,
             ))
 
         if coordinator.data.dosing_total() > 0:
@@ -255,6 +263,7 @@ async def async_setup_entry(
                     lambda data: data.dosing_total(),
                     UnitOfVolume.MILLILITERS,
                     _OIL_LEVEL,
+                    state_class=SensorStateClass.TOTAL_INCREASING,
                 )
             )
 
@@ -271,22 +280,26 @@ async def async_setup_entry(
         # Dosing info
         entities.append(SimpleSensor(coordinator, device_info, config_entry.entry_id, "dosing_rate", lambda data: data.dosing_rate(), _OIL_LEVEL))
         entities.append(UnitSensor(coordinator, device_info, config_entry.entry_id, "substance_dosage", lambda data: data.substance_dosage(), UnitOfVolume.MILLILITERS, _OIL_LEVEL, 0))
-        entities.append(UnitSensor(coordinator, device_info, config_entry.entry_id, "dosing_total", lambda data: data.dosing_total(), UnitOfVolume.MILLILITERS, _OIL_LEVEL, 0))
+        entities.append(UnitSensor(coordinator, device_info, config_entry.entry_id, "dosing_total", lambda data: data.dosing_total(), UnitOfVolume.MILLILITERS, _OIL_LEVEL, 0, state_class=SensorStateClass.TOTAL_INCREASING))
         # Network
-        entities.append(SimpleSensor(coordinator, device_info, config_entry.entry_id, "wifi_ssid", lambda data: data.wifi_ssid(), _UNKNOWN))
-        entities.append(SimpleSensor(coordinator, device_info, config_entry.entry_id, "wifi_rssi", lambda data: data.wifi_rssi(), _UNKNOWN))
+        entities.append(SimpleSensor(coordinator, device_info, config_entry.entry_id, "wifi_ssid", lambda data: data.wifi_ssid(), _UNKNOWN, entity_category=EntityCategory.DIAGNOSTIC))
+        entities.append(UnitSensor(coordinator, device_info, config_entry.entry_id, "wifi_rssi", lambda data: data.wifi_rssi(), SIGNAL_STRENGTH_DECIBELS_MILLIWATT, "mdi:wifi", 0, device_class=SensorDeviceClass.SIGNAL_STRENGTH, entity_category=EntityCategory.DIAGNOSTIC))
         # MAC
-        entities.append(SimpleSensor(coordinator, device_info, config_entry.entry_id, "mac_address", lambda data: data.mac_address(), _UNKNOWN))
+        entities.append(SimpleSensor(coordinator, device_info, config_entry.entry_id, "mac_address", lambda data: data.mac_address(), _UNKNOWN, entity_category=EntityCategory.DIAGNOSTIC))
         # Totals
         entities.append(TotalOutputSensor(coordinator, device_info, config_entry.entry_id))
         # Extras
-        entities.append(SimpleBinarySensor(coordinator, device_info, config_entry.entry_id, "buzzer", lambda data: data.buzzer(), _UNKNOWN))
-        entities.append(SimpleBinarySensor(coordinator, device_info, config_entry.entry_id, "aqa_watch", lambda data: data.aqa_watch(), _UNKNOWN))
-        entities.append(SimpleBinarySensor(coordinator, device_info, config_entry.entry_id, "aqa_max_flow", lambda data: data.aqa_max_flow(), _UNKNOWN))
-        entities.append(SimpleBinarySensor(coordinator, device_info, config_entry.entry_id, "aqa_max_volume", lambda data: data.aqa_max_volume(), _UNKNOWN))
+        entities.append(SimpleBinarySensor(coordinator, device_info, config_entry.entry_id, "buzzer", lambda data: data.buzzer(), _UNKNOWN, entity_category=EntityCategory.DIAGNOSTIC))
+        entities.append(SimpleBinarySensor(coordinator, device_info, config_entry.entry_id, "aqa_watch", lambda data: data.aqa_watch(), _UNKNOWN, entity_category=EntityCategory.DIAGNOSTIC))
+        entities.append(SimpleBinarySensor(coordinator, device_info, config_entry.entry_id, "aqa_max_flow", lambda data: data.aqa_max_flow(), _UNKNOWN, entity_category=EntityCategory.DIAGNOSTIC))
+        entities.append(SimpleBinarySensor(coordinator, device_info, config_entry.entry_id, "aqa_max_volume", lambda data: data.aqa_max_volume(), _UNKNOWN, entity_category=EntityCategory.DIAGNOSTIC))
         
     elif model == BwtModel.PERLA_SILK:
-        from .data.silk import REGISTER_NAMES, UNKNOWN_REGISTER_INDEXES
+        from .data.silk import (
+            FLAG_REGISTERS,
+            SETTING_REGISTERS,
+            UNKNOWN_REGISTER_INDEXES,
+        )
 
         entities.append(
             DeviceClassSensor(
@@ -328,6 +341,9 @@ async def async_setup_entry(
                 "firmware_version",
                 lambda data: data.firmware_version(),
                 "mdi:chip",
+                # Duplicates the device's sw_version.
+                entity_category=EntityCategory.DIAGNOSTIC,
+                enabled_default=False,
             )
         )
         entities.append(
@@ -431,6 +447,30 @@ async def async_setup_entry(
                 _TIME,
             )
         )
+        for key, index in SETTING_REGISTERS.items():
+            entities.append(
+                SimpleSensor(
+                    coordinator,
+                    device_info,
+                    config_entry.entry_id,
+                    key,
+                    lambda data, index=index: data.get_register(index),
+                    _SETTING,
+                    entity_category=EntityCategory.DIAGNOSTIC,
+                )
+            )
+        for key, index in FLAG_REGISTERS.items():
+            entities.append(
+                SimpleBinarySensor(
+                    coordinator,
+                    device_info,
+                    config_entry.entry_id,
+                    key,
+                    lambda data, index=index: data.get_flag(index),
+                    _SETTING,
+                    entity_category=EntityCategory.DIAGNOSTIC,
+                )
+            )
         for index in UNKNOWN_REGISTER_INDEXES:
             entities.append(
                 UnknownSensor(
@@ -438,7 +478,6 @@ async def async_setup_entry(
                     device_info,
                     config_entry.entry_id,
                     index,
-                    friendly_name=REGISTER_NAMES.get(index),
                     unit=None,
                 )
             )

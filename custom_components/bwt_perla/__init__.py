@@ -13,6 +13,7 @@ from homeassistant.helpers.entity_registry import async_migrate_entries
 from homeassistant.helpers import entity_registry as er
 
 from .coordinator import BwtConfigEntry, BwtCoordinator
+from .data.silk import FLAG_REGISTERS, SETTING_REGISTERS
 
 _LOGGER = logging.getLogger(__name__)
 PLATFORMS: list[Platform] = [Platform.SENSOR]
@@ -115,6 +116,24 @@ async def async_migrate_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
                 )
         
         hass.config_entries.async_update_entry(entry, version=3)
+
+    # 3.2: Silk registers with a known meaning became named sensors. Move their
+    # registry entries to the new unique ids so entity ids and history are kept.
+    if entry.version == 3 and entry.minor_version < 2:
+        renames = {
+            f"{entry.entry_id}_silk_register_{index}": f"{entry.entry_id}_{key}"
+            for key, index in {**SETTING_REGISTERS, **FLAG_REGISTERS}.items()
+        }
+
+        @callback
+        def rename_silk_register(entity_entry):
+            """Re-key a raw Silk register entity to its named sensor."""
+            if new_unique_id := renames.get(entity_entry.unique_id):
+                return {"new_unique_id": new_unique_id}
+            return None
+
+        await async_migrate_entries(hass, entry.entry_id, rename_silk_register)
+        hass.config_entries.async_update_entry(entry, minor_version=2)
 
     _LOGGER.info("Migration to version %s.%s successful", entry.version, entry.minor_version)
 

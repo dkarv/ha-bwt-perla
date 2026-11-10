@@ -132,9 +132,6 @@
             "days_in_service": {
                 "name": "Tage seit Inbetriebnahme"
             },
-            "warranty_days_remaining": {
-                "name": "Garantietage verbleibend"
-            },
             "dosing_total": {
                 "name": "Verbrauchte Menge Dosiermittel seit Inbetriebnahme"
             },
@@ -182,6 +179,87 @@
             },
             "rinse_duration": {
                 "name": "Spüldauer"
+            },
+            "salt_type": {
+                "name": "Salzart"
+            },
+            "device_ranking": {
+                "name": "Geräterang"
+            },
+            "model_code": {
+                "name": "Modellcode"
+            },
+            "duplex_setting": {
+                "name": "Duplex-Einstellung"
+            },
+            "base_model_number": {
+                "name": "Basismodellnummer"
+            },
+            "hardness_units": {
+                "name": "Härteeinheit"
+            },
+            "turbine_pulses_per_liter": {
+                "name": "Turbinenimpulse pro Liter"
+            },
+            "recharge_interval": {
+                "name": "Regenerationsintervall"
+            },
+            "capacity_scale_factor": {
+                "name": "Kapazitätsfaktor"
+            },
+            "salt_alarm_mode": {
+                "name": "Salzalarm-Modus"
+            },
+            "salt_per_regeneration": {
+                "name": "Salzverbrauch pro Regeneration"
+            },
+            "service_reminder_mode": {
+                "name": "Service-Erinnerungsmodus"
+            },
+            "recharge_algorithm": {
+                "name": "Regenerationsalgorithmus"
+            },
+            "day_of_week": {
+                "name": "Wochentag"
+            },
+            "allow_salt_type_change": {
+                "name": "Salzartwechsel erlaubt"
+            },
+            "allow_regen_time_change": {
+                "name": "Änderung der Regenerationszeit erlaubt"
+            },
+            "resin_capacity": {
+                "name": "Harzkapazität"
+            },
+            "silk_register_1": {
+                "name": "Reserviert 1"
+            },
+            "silk_register_9": {
+                "name": "Register 9"
+            },
+            "silk_register_10": {
+                "name": "Register 10"
+            },
+            "silk_register_36": {
+                "name": "Reserviert 2"
+            },
+            "silk_register_37": {
+                "name": "Reserviert 3"
+            },
+            "silk_register_43": {
+                "name": "Register 43"
+            },
+            "silk_register_44": {
+                "name": "Reserviert 4"
+            },
+            "silk_register_45": {
+                "name": "Reserviert 5"
+            },
+            "silk_register_46": {
+                "name": "Reserviert 6"
+            },
+            "silk_register_47": {
+                "name": "Register 47"
             }
         }
     },
