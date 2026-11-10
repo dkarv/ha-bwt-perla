@@ -124,9 +124,6 @@
             "dosing_total": {
                 "name": "Verbrauchte Menge Dosiermittel seit Inbetriebnahme"
             },
-            "comm_date": {
-                "name": "Letztes Kommunikationsdatum"
-            },
             "remaining_capacity_pct": {
                 "name": "Verbleibende Kapazität Prozent"
             },
