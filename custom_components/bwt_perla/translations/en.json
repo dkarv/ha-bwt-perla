@@ -117,9 +117,6 @@
             "days_in_service": {
                 "name": "Days in service"
             },
-            "warranty_days_remaining": {
-                "name": "Warranty days remaining"
-            },
             "dosing_total": {
                 "name": "Total dosing means used"
             },
@@ -183,17 +180,59 @@
             "rinse_duration": {
                 "name": "Rinse duration"
             },
-            "silk_register_0": {
+            "salt_type": {
                 "name": "Salt type"
+            },
+            "device_ranking": {
+                "name": "Device ranking"
+            },
+            "model_code": {
+                "name": "Model code"
+            },
+            "duplex_setting": {
+                "name": "Duplex setting"
+            },
+            "base_model_number": {
+                "name": "Base model number"
+            },
+            "hardness_units": {
+                "name": "Hardness units"
+            },
+            "turbine_pulses_per_liter": {
+                "name": "Turbine pulses per litre"
+            },
+            "recharge_interval": {
+                "name": "Recharge interval"
+            },
+            "capacity_scale_factor": {
+                "name": "Capacity scale factor"
+            },
+            "salt_alarm_mode": {
+                "name": "Salt alarm mode"
+            },
+            "salt_per_regeneration": {
+                "name": "Salt use per regeneration"
+            },
+            "service_reminder_mode": {
+                "name": "Service reminder mode"
+            },
+            "recharge_algorithm": {
+                "name": "Recharge algorithm"
+            },
+            "day_of_week": {
+                "name": "Day of week"
+            },
+            "allow_salt_type_change": {
+                "name": "Allow salt type change"
+            },
+            "allow_regen_time_change": {
+                "name": "Allow regen time change"
+            },
+            "resin_capacity": {
+                "name": "Resin capacity"
             },
             "silk_register_1": {
                 "name": "Reserved 1"
-            },
-            "silk_register_5": {
-                "name": "Device ranking"
-            },
-            "silk_register_6": {
-                "name": "Model code"
             },
             "silk_register_9": {
                 "name": "Register 9"
@@ -201,53 +240,14 @@
             "silk_register_10": {
                 "name": "Register 10"
             },
-            "silk_register_11": {
-                "name": "Duplex setting"
-            },
-            "silk_register_12": {
-                "name": "Base model number"
-            },
-            "silk_register_13": {
-                "name": "Hardness units"
-            },
-            "silk_register_20": {
-                "name": "Turbine pulses per litre"
-            },
-            "silk_register_21": {
-                "name": "Recharge interval"
-            },
-            "silk_register_22": {
-                "name": "Capacity scale factor"
-            },
-            "silk_register_29": {
-                "name": "Salt alarm mode"
-            },
-            "silk_register_32": {
-                "name": "Salt use per regeneration"
-            },
-            "silk_register_33": {
-                "name": "Service reminder mode"
-            },
-            "silk_register_35": {
-                "name": "Recharge algorithm"
-            },
             "silk_register_36": {
                 "name": "Reserved 2"
             },
             "silk_register_37": {
                 "name": "Reserved 3"
             },
-            "silk_register_38": {
-                "name": "Day of week"
-            },
-            "silk_register_39": {
-                "name": "Allow salt type change"
-            },
-            "silk_register_40": {
-                "name": "Allow regen time change"
-            },
-            "silk_register_41": {
-                "name": "Resin capacity"
+            "silk_register_43": {
+                "name": "Register 43"
             },
             "silk_register_44": {
                 "name": "Reserved 4"

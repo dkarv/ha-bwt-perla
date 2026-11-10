@@ -39,6 +39,7 @@ _OIL_LEVEL = "mdi:oil-level"
 _WATER = "mdi:water"
 _WATER_CHECK = "mdi:water-check"
 _UNKNOWN = "mdi:help-circle"
+_SETTING = "mdi:cog-outline"
 
 
 async def async_setup_entry(
@@ -173,7 +174,6 @@ async def async_setup_entry(
                 UnitOfMass.GRAMS,
                 _MASS,
                 state_class=SensorStateClass.TOTAL_INCREASING,
-                device_class=SensorDeviceClass.WEIGHT,
             )
         )
         entities.append(
@@ -283,7 +283,7 @@ async def async_setup_entry(
         entities.append(UnitSensor(coordinator, device_info, config_entry.entry_id, "dosing_total", lambda data: data.dosing_total(), UnitOfVolume.MILLILITERS, _OIL_LEVEL, 0, state_class=SensorStateClass.TOTAL_INCREASING))
         # Network
         entities.append(SimpleSensor(coordinator, device_info, config_entry.entry_id, "wifi_ssid", lambda data: data.wifi_ssid(), _UNKNOWN, entity_category=EntityCategory.DIAGNOSTIC))
-        entities.append(UnitSensor(coordinator, device_info, config_entry.entry_id, "wifi_rssi", lambda data: data.wifi_rssi(), SIGNAL_STRENGTH_DECIBELS_MILLIWATT, "mdi:wifi", 0, device_class=SensorDeviceClass.SIGNAL_STRENGTH, entity_category=EntityCategory.DIAGNOSTIC, enabled_default=False))
+        entities.append(UnitSensor(coordinator, device_info, config_entry.entry_id, "wifi_rssi", lambda data: data.wifi_rssi(), SIGNAL_STRENGTH_DECIBELS_MILLIWATT, "mdi:wifi", 0, device_class=SensorDeviceClass.SIGNAL_STRENGTH, entity_category=EntityCategory.DIAGNOSTIC))
         # MAC
         entities.append(SimpleSensor(coordinator, device_info, config_entry.entry_id, "mac_address", lambda data: data.mac_address(), _UNKNOWN, entity_category=EntityCategory.DIAGNOSTIC))
         # Totals
@@ -295,7 +295,11 @@ async def async_setup_entry(
         entities.append(SimpleBinarySensor(coordinator, device_info, config_entry.entry_id, "aqa_max_volume", lambda data: data.aqa_max_volume(), _UNKNOWN, entity_category=EntityCategory.DIAGNOSTIC))
         
     elif model == BwtModel.PERLA_SILK:
-        from .data.silk import RAW_REGISTER_INDEXES
+        from .data.silk import (
+            FLAG_REGISTERS,
+            SETTING_REGISTERS,
+            UNKNOWN_REGISTER_INDEXES,
+        )
 
         entities.append(
             DeviceClassSensor(
@@ -443,9 +447,33 @@ async def async_setup_entry(
                 _TIME,
             )
         )
-        for index in RAW_REGISTER_INDEXES:
+        for key, index in SETTING_REGISTERS.items():
             entities.append(
-                RawRegisterSensor(
+                SimpleSensor(
+                    coordinator,
+                    device_info,
+                    config_entry.entry_id,
+                    key,
+                    lambda data, index=index: data.get_register(index),
+                    _SETTING,
+                    entity_category=EntityCategory.DIAGNOSTIC,
+                )
+            )
+        for key, index in FLAG_REGISTERS.items():
+            entities.append(
+                SimpleBinarySensor(
+                    coordinator,
+                    device_info,
+                    config_entry.entry_id,
+                    key,
+                    lambda data, index=index: data.get_flag(index),
+                    _SETTING,
+                    entity_category=EntityCategory.DIAGNOSTIC,
+                )
+            )
+        for index in UNKNOWN_REGISTER_INDEXES:
+            entities.append(
+                UnknownSensor(
                     coordinator,
                     device_info,
                     config_entry.entry_id,

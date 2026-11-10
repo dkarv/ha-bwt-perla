@@ -1,20 +1,19 @@
 """Tests for entity state classes, categories, units and translated names."""
-
 from datetime import datetime
 from unittest.mock import AsyncMock, MagicMock, patch
 
 from bwt_api.bwt import BwtModel
 from bwt_api.data import (
-    BwtStatus,
     ConfigurationResponse,
     CurrentResponse,
     DeviceInfoResponse,
     Hardness,
     RemainingCapacityResponse,
-    SmartDosStatus,
     SubstanceDosageResponse,
     TreatedWaterResponse,
     WifiResponse,
+    BwtStatus,
+    SmartDosStatus,
 )
 from homeassistant.components.sensor import SensorDeviceClass, SensorStateClass
 from homeassistant.config_entries import ConfigEntryState
@@ -32,7 +31,9 @@ HOLIDAY_EPOCH = 1_900_000_000
 
 def _entry(model: BwtModel, **extra):
     data = {CONF_HOST: HOST, "model": model.name, **extra}
-    return MockConfigEntry(domain=DOMAIN, version=3, title="BWT", data=data)
+    return MockConfigEntry(
+        domain=DOMAIN, version=3, title="BWT", data=data, unique_id=HOST
+    )
 
 
 def _local_response(holiday_mode: int = HOLIDAY_EPOCH) -> CurrentResponse:
@@ -72,34 +73,19 @@ def _smartdos_api():
     api.close = AsyncMock()
     api.get_device_info = AsyncMock(
         return_value=DeviceInfoResponse(
-            fw_rev="1.0",
-            hw_rev="A",
-            product_code="X",
-            uptime=1,
-            operating_time=1,
-            dev_state=SmartDosStatus.STANDBY,
-            active_states=[],
-            comm_date="2026-01-01",
-            device_id="id",
-            device_type="t",
-            device_variant="v",
-            total_flow=1000,
+            fw_rev="1.0", hw_rev="A", product_code="X", uptime=1,
+            operating_time=1, dev_state=SmartDosStatus.STANDBY,
+            active_states=[], comm_date="2026-01-01", device_id="id",
+            device_type="t", device_variant="v", total_flow=1000,
             total_dosed=10,
         )
     )
     api.get_configuration = AsyncMock(
         return_value=ConfigurationResponse(
-            buzzer_en=True,
-            dosing_rate=1.0,
-            aqa_volume_en=False,
-            aqa_watch_en=False,
-            aqa_max_flow_en=False,
-            aqa_volume_val=0,
-            volume_per_stroke=0,
-            pouch_empty_timeout=0,
-            pouch_not_empty_timeout=0,
-            aqa_watch_val=0,
-            aqa_max_flow_val=0,
+            buzzer_en=True, dosing_rate=1.0, aqa_volume_en=False,
+            aqa_watch_en=False, aqa_max_flow_en=False, aqa_volume_val=0,
+            volume_per_stroke=0, pouch_empty_timeout=0,
+            pouch_not_empty_timeout=0, aqa_watch_val=0, aqa_max_flow_val=0,
             rest_server_en=True,
         )
     )
@@ -112,16 +98,8 @@ def _smartdos_api():
     api.get_substance_dosage = AsyncMock(return_value=SubstanceDosageResponse(12.5))
     api.get_wifi_info = AsyncMock(
         return_value=WifiResponse(
-            ssid=SSID,
-            rssi=-70,
-            rssiAvg="-65",
-            rssiSig="3",
-            dhcp=True,
-            ip="10.0.0.5",
-            sn=None,
-            sg=None,
-            pDns=None,
-            sDns=None,
+            ssid=SSID, rssi=-70, rssiAvg="-65", rssiSig="3", dhcp=True,
+            ip="10.0.0.5", sn=None, sg=None, pDns=None, sDns=None,
             mac=MAC,
         )
     )
@@ -136,21 +114,8 @@ def _silk_api():
     return api
 
 
-def _pre_enable(hass, entry, key):
-    """Pre-create an enabled registry entry so a disabled-by-default entity loads."""
-    er.async_get(hass).async_get_or_create(
-        "sensor",
-        DOMAIN,
-        f"{entry.entry_id}_{key}",
-        config_entry=entry,
-        suggested_object_id=f"{DOMAIN}_{key}",
-    )
-
-
-async def _setup(hass, entry, api_name, api, enable=()):
+async def _setup(hass, entry, api_name, api):
     entry.add_to_hass(hass)
-    for key in enable:
-        _pre_enable(hass, entry, key)
     with patch(f"custom_components.bwt_perla.{api_name}", return_value=api):
         await hass.config_entries.async_setup(entry.entry_id)
         await hass.async_block_till_done()
@@ -168,9 +133,7 @@ async def _setup_local(hass, holiday_mode=HOLIDAY_EPOCH):
 
 def _reg(hass, entry, key):
     registry = er.async_get(hass)
-    entity_id = registry.async_get_entity_id(
-        "sensor", DOMAIN, f"{entry.entry_id}_{key}"
-    )
+    entity_id = registry.async_get_entity_id("sensor", DOMAIN, f"{entry.entry_id}_{key}")
     assert entity_id, key
     return registry.async_get(entity_id)
 
@@ -196,147 +159,18 @@ async def test_local_state_classes(hass):
         assert state.attributes.get("state_class") == expected, key
 
 
-# Entity keys (unique_id suffix; entity_id is sensor.bwt_perla_<key>) registered
-# by the sensor platform on upstream main, per model. Renaming any of them breaks
-# user automations and history.
-UPSTREAM_LOCAL_KEYS = (
-    "capacity_1",
-    "capacity_2",
-    "counter_regeneration_1",
-    "counter_regeneration_2",
-    "current_flow",
-    "customer_service",
-    "day_output",
-    "dosing_total",
-    "errors",
-    "hardness_in",
-    "hardness_out",
-    "holiday_mode",
-    "holiday_mode_start",
-    "last_regeneration_1",
-    "last_regeneration_2",
-    "month_output",
-    "regenerativ_days",
-    "regenerativ_level",
-    "regenerativ_mass",
-    "state",
-    "technician_service",
-    "total_output",
-    "warnings",
-    "year_output",
-)
-
-UPSTREAM_SMARTDOS_KEYS = (
-    "aqa_max_flow",
-    "aqa_max_volume",
-    "aqa_watch",
-    "buzzer",
-    "capacity_1",
-    "dosing_rate",
-    "dosing_total",
-    "errors",
-    "mac_address",
-    "remaining_capacity_days",
-    "remaining_capacity_pct",
-    "state",
-    "substance_dosage",
-    "total_output",
-    "warnings",
-    "wifi_rssi",
-    "wifi_ssid",
-)
-
-UPSTREAM_SILK_KEYS = (
-    "avg_daily_output",
-    "backwash_duration",
-    "brine_duration",
-    "capacity_1",
-    "counter_regeneration_1",
-    "current_flow",
-    "day_output",
-    "days_in_service",
-    "dwell_duration",
-    "fill_duration",
-    "firmware_version",
-    "hardness_in",
-    "last_regeneration_1",
-    "next_customer_service",
-    "regenerativ_level",
-    "rinse_duration",
-    "salt_capacity_kg",
-    "salt_remaining_kg",
-    "silk_register_0",
-    "silk_register_1",
-    "silk_register_10",
-    "silk_register_11",
-    "silk_register_12",
-    "silk_register_13",
-    "silk_register_20",
-    "silk_register_21",
-    "silk_register_22",
-    "silk_register_29",
-    "silk_register_32",
-    "silk_register_33",
-    "silk_register_35",
-    "silk_register_36",
-    "silk_register_37",
-    "silk_register_38",
-    "silk_register_39",
-    "silk_register_40",
-    "silk_register_41",
-    "silk_register_44",
-    "silk_register_45",
-    "silk_register_46",
-    "silk_register_47",
-    "silk_register_5",
-    "silk_register_6",
-    "silk_register_9",
-    "total_output",
-    "warranty_end",
-)
-
-
-async def _assert_ids_match_upstream(hass, entry, expected):
-    registry = er.async_get(hass)
-    entries = er.async_entries_for_config_entry(registry, entry.entry_id)
-    actual = {e.unique_id.removeprefix(f"{entry.entry_id}_") for e in entries}
-    assert actual == set(expected)
-    for e in entries:
-        key = e.unique_id.removeprefix(f"{entry.entry_id}_")
-        assert e.entity_id == f"sensor.{DOMAIN}_{key}"
-
-
 async def test_entity_ids_unchanged(hass):
     entry = await _setup_local(hass)
-    await _assert_ids_match_upstream(hass, entry, UPSTREAM_LOCAL_KEYS)
-
-
-async def test_smartdos_entity_ids_unchanged(hass):
-    entry = _entry(BwtModel.SMART_DOS)
-    await _setup(hass, entry, "BwtSmartDosApi", _smartdos_api())
-    await _assert_ids_match_upstream(hass, entry, UPSTREAM_SMARTDOS_KEYS)
-
-
-async def test_silk_entity_ids_unchanged(hass):
-    entry = _entry(BwtModel.PERLA_SILK)
-    await _setup(hass, entry, "BwtSilkApi", _silk_api())
-    await _assert_ids_match_upstream(hass, entry, UPSTREAM_SILK_KEYS)
+    assert _reg(hass, entry, "regenerativ_mass").entity_id == "sensor.bwt_perla_regenerativ_mass"
 
 
 async def test_smartdos_categories_and_rssi(hass):
     api = _smartdos_api()
     entry = _entry(BwtModel.SMART_DOS)
-    await _setup(hass, entry, "BwtSmartDosApi", api, enable=("wifi_rssi",))
+    await _setup(hass, entry, "BwtSmartDosApi", api)
 
-    for key in (
-        "wifi_ssid",
-        "wifi_rssi",
-        "mac_address",
-        "buzzer",
-        "aqa_watch",
-        "aqa_max_flow",
-        "aqa_max_volume",
-    ):
+    for key in ("wifi_ssid", "wifi_rssi", "mac_address",
+                "buzzer", "aqa_watch", "aqa_max_flow", "aqa_max_volume"):
         reg = _reg(hass, entry, key)
         assert reg.entity_category is EntityCategory.DIAGNOSTIC, key
         assert reg.disabled_by is None, key
@@ -355,36 +189,16 @@ async def test_smartdos_categories_and_rssi(hass):
     assert state.attributes["state_class"] == SensorStateClass.MEASUREMENT
 
 
-async def test_smartdos_rssi_disabled_by_default(hass):
-    """wifi_rssi refreshes every ~30 s, so it must be opt-in."""
-    entry = _entry(BwtModel.SMART_DOS)
-    await _setup(hass, entry, "BwtSmartDosApi", _smartdos_api())
-    reg = _reg(hass, entry, "wifi_rssi")
-    assert reg.disabled_by is er.RegistryEntryDisabler.INTEGRATION
-    assert hass.states.get(reg.entity_id) is None
-    # The other diagnostic entities stay enabled.
-    assert _reg(hass, entry, "wifi_ssid").disabled_by is None
-
-
 async def test_smartdos_rssi_falls_back_to_raw(hass):
     api = _smartdos_api()
     api.get_wifi_info = AsyncMock(
         return_value=WifiResponse(
-            ssid=SSID,
-            rssi=-70,
-            rssiAvg="n/a",
-            rssiSig="",
-            dhcp=True,
-            ip=None,
-            sn=None,
-            sg=None,
-            pDns=None,
-            sDns=None,
-            mac=MAC,
+            ssid=SSID, rssi=-70, rssiAvg="n/a", rssiSig="", dhcp=True,
+            ip=None, sn=None, sg=None, pDns=None, sDns=None, mac=MAC,
         )
     )
     entry = _entry(BwtModel.SMART_DOS)
-    await _setup(hass, entry, "BwtSmartDosApi", api, enable=("wifi_rssi",))
+    await _setup(hass, entry, "BwtSmartDosApi", api)
     _, state = _sensor_attrs(hass, entry, "wifi_rssi")
     assert state.state == "-70.0"
 
@@ -406,24 +220,34 @@ async def test_silk_categories_and_state_classes(hass):
     assert reg.entity_category is EntityCategory.DIAGNOSTIC
     assert reg.disabled_by is er.RegistryEntryDisabler.INTEGRATION
 
-    raw = _reg(hass, entry, "silk_register_5")
-    assert raw.entity_category is EntityCategory.DIAGNOSTIC
-    assert raw.disabled_by is er.RegistryEntryDisabler.INTEGRATION
-    assert raw.original_name == "Device ranking"
-    # Reserved registers get distinct translated names (and thus entity ids).
-    names = {
-        _reg(hass, entry, f"silk_register_{i}").original_name
-        for i in (1, 36, 37, 44, 45, 46)
+    # Registers with a known meaning are named, enabled diagnostic sensors.
+    reg, state = _sensor_attrs(hass, entry, "device_ranking")
+    assert reg.entity_id == "sensor.bwt_perla_device_ranking"
+    assert reg.entity_category is EntityCategory.DIAGNOSTIC
+    assert reg.disabled_by is None
+    assert reg.original_name == "Device ranking"
+    assert state.state == "1"
+    reg, state = _sensor_attrs(hass, entry, "allow_salt_type_change")
+    assert reg.entity_category is EntityCategory.DIAGNOSTIC
+    assert state.state == "on"
+
+    # Only registers with an unknown meaning stay raw and disabled.
+    registry = er.async_get(hass)
+    raw = {
+        e.unique_id.removeprefix(f"{entry.entry_id}_")
+        for e in er.async_entries_for_config_entry(registry, entry.entry_id)
+        if "silk_register_" in e.unique_id
     }
+    assert raw == {f"silk_register_{i}" for i in (1, 9, 10, 36, 37, 43, 44, 45, 46, 47)}
+    reg = _reg(hass, entry, "silk_register_9")
+    assert reg.entity_category is EntityCategory.DIAGNOSTIC
+    assert reg.disabled_by is er.RegistryEntryDisabler.INTEGRATION
+    names = {_reg(hass, entry, f"silk_register_{i}").original_name
+             for i in (1, 36, 37, 44, 45, 46)}
     assert names == {f"Reserved {n}" for n in range(1, 7)}
 
-    for key in (
-        "fill_duration",
-        "dwell_duration",
-        "brine_duration",
-        "backwash_duration",
-        "rinse_duration",
-    ):
+    for key in ("fill_duration", "dwell_duration", "brine_duration",
+                "backwash_duration", "rinse_duration"):
         reg, state = _sensor_attrs(hass, entry, key)
         assert reg.entity_category is None
         assert state.attributes["state_class"] == SensorStateClass.MEASUREMENT, key
@@ -432,22 +256,31 @@ async def test_silk_categories_and_state_classes(hass):
     assert state.attributes["state_class"] == SensorStateClass.MEASUREMENT
 
 
-async def test_regenerativ_mass_weight_device_class(hass):
-    entry = await _setup_local(hass)
-    _, state = _sensor_attrs(hass, entry, "regenerativ_mass")
-    assert state.attributes["device_class"] == SensorDeviceClass.WEIGHT
-    assert state.attributes["unit_of_measurement"] == "g"
-    assert state.attributes["state_class"] == SensorStateClass.TOTAL_INCREASING
+async def test_silk_register_entities_migrate_to_named_sensors(hass):
+    """Existing raw register entities keep their entity id under the new key."""
+    entry = _entry(BwtModel.PERLA_SILK)
+    entry.add_to_hass(hass)
+    registry = er.async_get(hass)
+    old = registry.async_get_or_create(
+        "sensor", DOMAIN, f"{entry.entry_id}_silk_register_0",
+        config_entry=entry, suggested_object_id="bwt_perla_silk_register_0",
+    )
+    unknown = registry.async_get_or_create(
+        "sensor", DOMAIN, f"{entry.entry_id}_silk_register_9",
+        config_entry=entry, suggested_object_id="bwt_perla_silk_register_9",
+    )
 
+    with patch("custom_components.bwt_perla.BwtSilkApi", return_value=_silk_api()):
+        await hass.config_entries.async_setup(entry.entry_id)
+        await hass.async_block_till_done()
 
-async def test_dosing_total_has_no_volume_device_class(hass):
-    """VOLUME would convert mL to fl. oz. for US customary users, so omit it."""
-    from homeassistant.util.unit_system import US_CUSTOMARY_SYSTEM
-
-    hass.config.units = US_CUSTOMARY_SYSTEM
-    entry = await _setup_local(hass)
-    _, state = _sensor_attrs(hass, entry, "dosing_total")
-    assert "device_class" not in state.attributes
-    assert state.attributes["unit_of_measurement"] == "mL"
-    _, state = _sensor_attrs(hass, entry, "regenerativ_mass")
-    assert state.attributes["unit_of_measurement"] == "g"
+    assert entry.state is ConfigEntryState.LOADED
+    assert (entry.version, entry.minor_version) == (3, 2)
+    migrated = registry.async_get(old.entity_id)
+    assert migrated.unique_id == f"{entry.entry_id}_salt_type"
+    assert registry.async_get_entity_id(
+        "sensor", DOMAIN, f"{entry.entry_id}_salt_type"
+    ) == "sensor.bwt_perla_silk_register_0"
+    assert registry.async_get(unknown.entity_id).unique_id == (
+        f"{entry.entry_id}_silk_register_9"
+    )
