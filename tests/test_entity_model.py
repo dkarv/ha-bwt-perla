@@ -238,7 +238,7 @@ async def test_silk_categories_and_state_classes(hass):
         for e in er.async_entries_for_config_entry(registry, entry.entry_id)
         if "silk_register_" in e.unique_id
     }
-    assert raw == {f"silk_register_{i}" for i in (1, 9, 10, 36, 37, 44, 45, 46, 47)}
+    assert raw == {f"silk_register_{i}" for i in (1, 9, 10, 36, 37, 43, 44, 45, 46, 47)}
     reg = _reg(hass, entry, "silk_register_9")
     assert reg.entity_category is EntityCategory.DIAGNOSTIC
     assert reg.disabled_by is er.RegistryEntryDisabler.INTEGRATION

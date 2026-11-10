@@ -132,9 +132,6 @@
             "days_in_service": {
                 "name": "Tage seit Inbetriebnahme"
             },
-            "warranty_days_remaining": {
-                "name": "Garantietage verbleibend"
-            },
             "dosing_total": {
                 "name": "Verbrauchte Menge Dosiermittel seit Inbetriebnahme"
             },
@@ -248,6 +245,9 @@
             },
             "silk_register_37": {
                 "name": "Reserviert 3"
+            },
+            "silk_register_43": {
+                "name": "Register 43"
             },
             "silk_register_44": {
                 "name": "Reserviert 4"

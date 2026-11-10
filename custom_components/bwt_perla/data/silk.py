@@ -178,4 +178,4 @@ FLAG_REGISTERS: dict[str, int] = {
 
 # Registers whose meaning is unknown (reserved or unidentified). They stay
 # raw silk_register_<index> diagnostic entities, disabled by default.
-UNKNOWN_REGISTER_INDEXES = [1, 9, 10, 36, 37, 44, 45, 46, 47]
+UNKNOWN_REGISTER_INDEXES = [1, 9, 10, 36, 37, 43, 44, 45, 46, 47]
