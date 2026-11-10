@@ -311,3 +311,24 @@ async def test_silk_categories_and_state_classes(hass):
 
     _, state = _sensor_attrs(hass, entry, "salt_remaining_kg")
     assert state.attributes["state_class"] == SensorStateClass.MEASUREMENT
+
+
+async def test_regenerativ_mass_weight_device_class(hass):
+    entry = await _setup_local(hass)
+    _, state = _sensor_attrs(hass, entry, "regenerativ_mass")
+    assert state.attributes["device_class"] == SensorDeviceClass.WEIGHT
+    assert state.attributes["unit_of_measurement"] == "g"
+    assert state.attributes["state_class"] == SensorStateClass.TOTAL_INCREASING
+
+
+async def test_dosing_total_has_no_volume_device_class(hass):
+    """VOLUME would convert mL to fl. oz. for US customary users, so omit it."""
+    from homeassistant.util.unit_system import US_CUSTOMARY_SYSTEM
+
+    hass.config.units = US_CUSTOMARY_SYSTEM
+    entry = await _setup_local(hass)
+    _, state = _sensor_attrs(hass, entry, "dosing_total")
+    assert "device_class" not in state.attributes
+    assert state.attributes["unit_of_measurement"] == "mL"
+    _, state = _sensor_attrs(hass, entry, "regenerativ_mass")
+    assert state.attributes["unit_of_measurement"] == "g"
