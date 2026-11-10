@@ -6,10 +6,12 @@ from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .coordinator import BwtConfigEntry
+from .data.silk import FLAG_REGISTERS
 from .sensors.base import build_device_info
 from .sensors.binary import HolidayModeSensor, SimpleBinarySensor
 
 _UNKNOWN = "mdi:help-circle"
+_SETTING = "mdi:cog-outline"
 
 
 async def async_setup_entry(
@@ -41,6 +43,20 @@ async def async_setup_entry(
                     key,
                     extract,
                     _UNKNOWN,
+                    entity_category=EntityCategory.DIAGNOSTIC,
+                )
+            )
+
+    elif model == BwtModel.PERLA_SILK:
+        for key, index in FLAG_REGISTERS.items():
+            entities.append(
+                SimpleBinarySensor(
+                    coordinator,
+                    device_info,
+                    entry_id,
+                    key,
+                    lambda data, index=index: data.get_flag(index),
+                    _SETTING,
                     entity_category=EntityCategory.DIAGNOSTIC,
                 )
             )

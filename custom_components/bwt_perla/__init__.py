@@ -15,6 +15,7 @@ from homeassistant.helpers import issue_registry as ir
 
 from .const import DOMAIN
 from .coordinator import BwtConfigEntry, BwtCoordinator
+from .data.silk import FLAG_REGISTERS, SETTING_REGISTERS
 
 _LOGGER = logging.getLogger(__name__)
 PLATFORMS: list[Platform] = [Platform.SENSOR, Platform.BINARY_SENSOR]
@@ -89,6 +90,7 @@ _BINARY_SENSOR_KEYS = (
     "aqa_watch",
     "aqa_max_flow",
     "aqa_max_volume",
+    *FLAG_REGISTERS,
 )
 
 
@@ -212,12 +214,30 @@ async def async_migrate_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         
         hass.config_entries.async_update_entry(entry, version=3)
 
-    # Binary sensors moved from the sensor platform to the binary_sensor platform.
-    # The stored data is unchanged, so this is a minor version bump (older
-    # versions can still load the entry). Upstream entries are at minor version 1.
+    # 3.2: Silk registers with a known meaning became named sensors. Move their
+    # registry entries to the new unique ids so entity ids and history are kept.
     if entry.version == 3 and entry.minor_version < 2:
-        moved = _move_binary_sensors(hass, entry)
+        renames = {
+            f"{entry.entry_id}_silk_register_{index}": f"{entry.entry_id}_{key}"
+            for key, index in {**SETTING_REGISTERS, **FLAG_REGISTERS}.items()
+        }
+
+        @callback
+        def rename_silk_register(entity_entry):
+            """Re-key a raw Silk register entity to its named sensor."""
+            if new_unique_id := renames.get(entity_entry.unique_id):
+                return {"new_unique_id": new_unique_id}
+            return None
+
+        await async_migrate_entries(hass, entry.entry_id, rename_silk_register)
         hass.config_entries.async_update_entry(entry, minor_version=2)
+
+    # 3.3: Binary sensors moved from the sensor platform to the binary_sensor platform.
+    # The stored data is unchanged, so this is a minor version bump (older
+    # versions can still load the entry).
+    if entry.version == 3 and entry.minor_version < 3:
+        moved = _move_binary_sensors(hass, entry)
+        hass.config_entries.async_update_entry(entry, minor_version=3)
         if moved:
             _create_moved_entities_issue(hass, entry, moved)
 

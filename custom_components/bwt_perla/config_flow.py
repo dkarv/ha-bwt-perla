@@ -73,7 +73,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     """Handle a config flow for BWT Perla."""
 
     VERSION = 3
-    MINOR_VERSION = 2
+    MINOR_VERSION = 3
 
     def _async_finish_reconfigure(self, data: dict[str, Any]) -> FlowResult:
         """Store the new data on the entry being reconfigured."""

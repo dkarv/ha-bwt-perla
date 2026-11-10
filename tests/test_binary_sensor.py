@@ -19,6 +19,7 @@ from .test_entity_model import (
     _local_response,
     _setup,
     _setup_local,
+    _silk_api,
     _smartdos_api,
 )
 
@@ -40,7 +41,7 @@ async def test_smartdos_binary_sensors(hass):
     entry = MockConfigEntry(
         domain=DOMAIN,
         version=3,
-        minor_version=2,
+        minor_version=3,
         title="BWT",
         data={"host": HOST, "model": BwtModel.SMART_DOS.name},
     )
@@ -56,7 +57,7 @@ async def test_smartdos_binary_sensors(hass):
         )
 
 
-def _old_entry(model, version=3, minor_version=1, **extra):
+def _old_entry(model, version=3, minor_version=2, **extra):
     """An entry as written before the binary_sensor platform existed."""
     return MockConfigEntry(
         domain=DOMAIN,
@@ -117,7 +118,7 @@ async def test_migration_moves_registry_entries(hass):
 
     await _setup(hass, entry, "BwtApi", _local_api())
 
-    assert (entry.version, entry.minor_version) == (3, 2)
+    assert (entry.version, entry.minor_version) == (3, 3)
     assert registry.async_get_entity_id("sensor", DOMAIN, uid) is None
     new_id = registry.async_get_entity_id("binary_sensor", DOMAIN, uid)
     assert new_id == "binary_sensor.bwt_perla_holiday_mode"
@@ -255,7 +256,7 @@ async def test_migration_without_old_entities_creates_no_issue(hass):
     """A v3 entry without old sensor entries (new install) migrates cleanly."""
     entry = _old_entry(BwtModel.SMART_DOS)
     await _setup(hass, entry, "BwtSmartDosApi", _smartdos_api())
-    assert (entry.version, entry.minor_version) == (3, 2)
+    assert (entry.version, entry.minor_version) == (3, 3)
     assert entry.state is ConfigEntryState.LOADED
     assert _issues(hass) == []
     registry = er.async_get(hass)
@@ -274,13 +275,13 @@ async def test_migration_is_idempotent(hass):
     assert await async_migrate_entry(hass, entry)
     snapshot = sorted(e.entity_id for e in registry.entities.values())
     issue_ids = [i.issue_id for i in _issues(hass)]
-    # Forcing a re-run (e.g. minor version reset to 1) changes nothing and adds nothing.
-    hass.config_entries.async_update_entry(entry, minor_version=1)
+    # Forcing a re-run (e.g. minor version reset to 2) changes nothing and adds nothing.
+    hass.config_entries.async_update_entry(entry, minor_version=2)
     assert await async_migrate_entry(hass, entry)
 
     assert sorted(e.entity_id for e in registry.entities.values()) == snapshot
     assert [i.issue_id for i in _issues(hass)] == issue_ids
-    assert (entry.version, entry.minor_version) == (3, 2)
+    assert (entry.version, entry.minor_version) == (3, 3)
 
 
 async def test_full_migration_chain_from_version_1(hass):
@@ -311,7 +312,7 @@ async def test_full_migration_chain_from_version_1(hass):
 
     assert await async_migrate_entry(hass, entry)
 
-    assert (entry.version, entry.minor_version) == (3, 2)
+    assert (entry.version, entry.minor_version) == (3, 3)
     assert (
         registry.async_get_entity_id(
             "binary_sensor", DOMAIN, f"{entry.entry_id}_buzzer"
@@ -338,7 +339,7 @@ async def test_migration_from_version_2(hass):
 
     assert await async_migrate_entry(hass, entry)
 
-    assert (entry.version, entry.minor_version) == (3, 2)
+    assert (entry.version, entry.minor_version) == (3, 3)
     assert registry.async_get_entity_id(
         "binary_sensor", DOMAIN, f"{entry.entry_id}_aqa_max_flow"
     )
@@ -361,3 +362,43 @@ async def test_removing_entry_deletes_repair_issue(hass):
     assert [i.issue_id for i in _issues(hass)] == [
         f"binary_sensors_moved_{other.entry_id}"
     ]
+
+
+async def test_silk_flags_are_binary_sensors(hass):
+    entry = _old_entry(BwtModel.PERLA_SILK, minor_version=3)
+    await _setup(hass, entry, "BwtSilkApi", _silk_api())
+    registry = er.async_get(hass)
+    for key in ("allow_salt_type_change", "allow_regen_time_change"):
+        uid = f"{entry.entry_id}_{key}"
+        assert registry.async_get_entity_id("sensor", DOMAIN, uid) is None
+        assert registry.async_get_entity_id("binary_sensor", DOMAIN, uid) == (
+            f"binary_sensor.bwt_perla_{key}"
+        )
+
+
+async def test_silk_flag_register_migrates_through_3_2_and_3_3(hass):
+    """A raw silk_register_39 sensor is re-keyed (3.2), then moved (3.3)."""
+    entry = _old_entry(BwtModel.PERLA_SILK, minor_version=1)
+    entry.add_to_hass(hass)
+    registry = er.async_get(hass)
+    registry.async_get_or_create(
+        "sensor",
+        DOMAIN,
+        f"{entry.entry_id}_silk_register_39",
+        config_entry=entry,
+        suggested_object_id="bwt_perla_silk_register_39",
+    )
+
+    assert await async_migrate_entry(hass, entry)
+
+    assert (entry.version, entry.minor_version) == (3, 3)
+    uid = f"{entry.entry_id}_allow_salt_type_change"
+    assert registry.async_get_entity_id("sensor", DOMAIN, uid) is None
+    assert registry.async_get_entity_id("binary_sensor", DOMAIN, uid) == (
+        "binary_sensor.bwt_perla_silk_register_39"
+    )
+    (issue,) = _issues(hass)
+    assert (
+        "`sensor.bwt_perla_silk_register_39` -> `binary_sensor.bwt_perla_silk_register_39`"
+        in issue.translation_placeholders["entities"]
+    )
