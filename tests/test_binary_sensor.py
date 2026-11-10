@@ -245,7 +245,7 @@ async def test_migration_creates_issue_only_when_something_moved(hass):
     assert issue.issue_id == f"binary_sensors_moved_{moved_entry.entry_id}"
     assert issue.translation_key == "binary_sensors_moved"
     assert issue.is_fixable is False
-    assert issue.severity is ir.IssueSeverity.WARNING
+    assert issue.severity is ir.IssueSeverity.ERROR
     listed = issue.translation_placeholders["entities"]
     assert "`sensor.bwt_perla_buzzer` -> `binary_sensor.bwt_perla_buzzer`" in listed
     assert "aqa_watch" in listed
