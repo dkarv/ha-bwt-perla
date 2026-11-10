@@ -196,12 +196,131 @@ async def test_local_state_classes(hass):
         assert state.attributes.get("state_class") == expected, key
 
 
+# Entity keys (unique_id suffix; entity_id is sensor.bwt_perla_<key>) registered
+# by the sensor platform on upstream main, per model. Renaming any of them breaks
+# user automations and history.
+UPSTREAM_LOCAL_KEYS = (
+    "capacity_1",
+    "capacity_2",
+    "counter_regeneration_1",
+    "counter_regeneration_2",
+    "current_flow",
+    "customer_service",
+    "day_output",
+    "dosing_total",
+    "errors",
+    "hardness_in",
+    "hardness_out",
+    "holiday_mode",
+    "holiday_mode_start",
+    "last_regeneration_1",
+    "last_regeneration_2",
+    "month_output",
+    "regenerativ_days",
+    "regenerativ_level",
+    "regenerativ_mass",
+    "state",
+    "technician_service",
+    "total_output",
+    "warnings",
+    "year_output",
+)
+
+UPSTREAM_SMARTDOS_KEYS = (
+    "aqa_max_flow",
+    "aqa_max_volume",
+    "aqa_watch",
+    "buzzer",
+    "capacity_1",
+    "dosing_rate",
+    "dosing_total",
+    "errors",
+    "mac_address",
+    "remaining_capacity_days",
+    "remaining_capacity_pct",
+    "state",
+    "substance_dosage",
+    "total_output",
+    "warnings",
+    "wifi_rssi",
+    "wifi_ssid",
+)
+
+UPSTREAM_SILK_KEYS = (
+    "avg_daily_output",
+    "backwash_duration",
+    "brine_duration",
+    "capacity_1",
+    "counter_regeneration_1",
+    "current_flow",
+    "day_output",
+    "days_in_service",
+    "dwell_duration",
+    "fill_duration",
+    "firmware_version",
+    "hardness_in",
+    "last_regeneration_1",
+    "next_customer_service",
+    "regenerativ_level",
+    "rinse_duration",
+    "salt_capacity_kg",
+    "salt_remaining_kg",
+    "silk_register_0",
+    "silk_register_1",
+    "silk_register_10",
+    "silk_register_11",
+    "silk_register_12",
+    "silk_register_13",
+    "silk_register_20",
+    "silk_register_21",
+    "silk_register_22",
+    "silk_register_29",
+    "silk_register_32",
+    "silk_register_33",
+    "silk_register_35",
+    "silk_register_36",
+    "silk_register_37",
+    "silk_register_38",
+    "silk_register_39",
+    "silk_register_40",
+    "silk_register_41",
+    "silk_register_44",
+    "silk_register_45",
+    "silk_register_46",
+    "silk_register_47",
+    "silk_register_5",
+    "silk_register_6",
+    "silk_register_9",
+    "total_output",
+    "warranty_end",
+)
+
+
+async def _assert_ids_match_upstream(hass, entry, expected):
+    registry = er.async_get(hass)
+    entries = er.async_entries_for_config_entry(registry, entry.entry_id)
+    actual = {e.unique_id.removeprefix(f"{entry.entry_id}_") for e in entries}
+    assert actual == set(expected)
+    for e in entries:
+        key = e.unique_id.removeprefix(f"{entry.entry_id}_")
+        assert e.entity_id == f"sensor.{DOMAIN}_{key}"
+
+
 async def test_entity_ids_unchanged(hass):
     entry = await _setup_local(hass)
-    assert (
-        _reg(hass, entry, "regenerativ_mass").entity_id
-        == "sensor.bwt_perla_regenerativ_mass"
-    )
+    await _assert_ids_match_upstream(hass, entry, UPSTREAM_LOCAL_KEYS)
+
+
+async def test_smartdos_entity_ids_unchanged(hass):
+    entry = _entry(BwtModel.SMART_DOS)
+    await _setup(hass, entry, "BwtSmartDosApi", _smartdos_api())
+    await _assert_ids_match_upstream(hass, entry, UPSTREAM_SMARTDOS_KEYS)
+
+
+async def test_silk_entity_ids_unchanged(hass):
+    entry = _entry(BwtModel.PERLA_SILK)
+    await _setup(hass, entry, "BwtSilkApi", _silk_api())
+    await _assert_ids_match_upstream(hass, entry, UPSTREAM_SILK_KEYS)
 
 
 async def test_smartdos_categories_and_rssi(hass):
