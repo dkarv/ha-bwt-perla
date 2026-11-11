@@ -1,9 +1,13 @@
 """strings.json and translations/*.json must stay in sync.
 
 Checks, for every translations/<lang>.json against strings.json:
- - the same set of keys (no orphaned or missing entries),
+ - no orphaned keys (every key exists in strings.json),
  - no empty values,
  - the same {placeholders} in every message.
+
+Only the maintained languages (COMPLETE) must also have every key. Community
+translations may lag behind: Home Assistant falls back to English for missing
+keys, and a new string should not need a translation nobody else can write.
 
 Stdlib only; no Home Assistant needed.
 """
@@ -35,17 +39,24 @@ def _load(path):
 
 STRINGS = _load(BASE / "strings.json")
 TRANSLATIONS = {p.name: _load(p) for p in sorted((BASE / "translations").glob("*.json"))}
+# Languages kept in sync with strings.json by the maintainers.
+COMPLETE = {"en.json", "de.json"}
 
 
 def test_translation_files_found():
-    assert {"en.json", "de.json"} <= set(TRANSLATIONS)
+    assert COMPLETE <= set(TRANSLATIONS)
 
 
 @pytest.mark.parametrize("name", TRANSLATIONS)
-def test_same_keys(name):
+def test_no_orphaned_keys(name):
+    keys = set(TRANSLATIONS[name])
+    assert sorted(keys - set(STRINGS)) == [], "not in strings.json (orphaned)"
+
+
+@pytest.mark.parametrize("name", sorted(COMPLETE))
+def test_complete_translations_have_all_keys(name):
     keys = set(TRANSLATIONS[name])
     assert sorted(set(STRINGS) - keys) == [], "missing from translation"
-    assert sorted(keys - set(STRINGS)) == [], "not in strings.json (orphaned)"
 
 
 @pytest.mark.parametrize("name", ["strings.json", *TRANSLATIONS])
