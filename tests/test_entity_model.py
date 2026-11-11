@@ -29,10 +29,15 @@ SSID = "MyHomeWifi"
 HOLIDAY_EPOCH = 1_900_000_000
 
 
-def _entry(model: BwtModel, **extra):
+def _entry(model: BwtModel, minor_version: int = 1, **extra):
     data = {CONF_HOST: HOST, "model": model.name, **extra}
     return MockConfigEntry(
-        domain=DOMAIN, version=3, title="BWT", data=data, unique_id=HOST
+        domain=DOMAIN,
+        version=3,
+        minor_version=minor_version,
+        title="BWT",
+        data=data,
+        unique_id=HOST,
     )
 
 
@@ -132,10 +137,15 @@ async def _setup(hass, entry, api_name, api, enable=()):
     assert entry.state is ConfigEntryState.LOADED
 
 
-async def _setup_local(hass, holiday_mode=HOLIDAY_EPOCH):
+def _local_api(holiday_mode=HOLIDAY_EPOCH):
     api = MagicMock()
     api.close = AsyncMock()
     api.get_current_data = AsyncMock(return_value=_local_response(holiday_mode))
+    return api
+
+
+async def _setup_local(hass, holiday_mode=HOLIDAY_EPOCH):
+    api = _local_api(holiday_mode)
     entry = _entry(BwtModel.PERLA_LOCAL_API, **{CONF_CODE: "secret-code"})
     await _setup(hass, entry, "BwtApi", api)
     return entry
@@ -303,19 +313,70 @@ SILK_RENAMED_REGISTERS = {
 }
 
 
+# Unique id suffixes that were sensor.* entities before the binary_sensor platform
+# existed (#78). Their entity id slug is unchanged, only the domain moved.
+MOVED_UNIQUE_KEYS = {
+    "holiday_mode",
+    "buzzer",
+    "aqa_watch",
+    "aqa_max_flow",
+    "aqa_max_volume",
+    "allow_salt_type_change",
+    "allow_regen_time_change",
+}
+
+
+def _old_entity_id(key):
+    """Entity id a pre-#84 install has for this unique id suffix."""
+    return f"sensor.{DOMAIN}_{key}"
+
+
 async def _assert_old_keys_kept(hass, entry, old_keys):
-    """Every previously registered entity keeps its unique id and entity id."""
+    """Every previously registered entity keeps its unique id and entity slug."""
     registry = er.async_get(hass)
     for key in old_keys:
+        domain = "binary_sensor" if key in MOVED_UNIQUE_KEYS else "sensor"
         entity_id = registry.async_get_entity_id(
-            "sensor", DOMAIN, f"{entry.entry_id}_{key}"
+            domain, DOMAIN, f"{entry.entry_id}_{key}"
         )
-        assert entity_id == f"sensor.{DOMAIN}_{key}", key
+        assert entity_id == f"{domain}.{DOMAIN}_{key}", key
+
+
+async def _assert_migrated_from_pre_binary_sensor(hass, entry, api_name, api, keys):
+    """Pre-register sensor.* entries at 3.2, run the migration and set up.
+
+    Entity id slugs and unique ids must survive; only the on/off entities
+    change domain to binary_sensor.
+    """
+    entry.add_to_hass(hass)
+    registry = er.async_get(hass)
+    for key in keys:
+        entity = registry.async_get_or_create(
+            "sensor",
+            DOMAIN,
+            f"{entry.entry_id}_{key}",
+            config_entry=entry,
+            suggested_object_id=f"{DOMAIN}_{key}",
+        )
+        assert entity.entity_id == _old_entity_id(key)
+    with patch(f"custom_components.bwt_perla.{api_name}", return_value=api):
+        await hass.config_entries.async_setup(entry.entry_id)
+        await hass.async_block_till_done()
+    assert entry.state is ConfigEntryState.LOADED
+    assert (entry.version, entry.minor_version) == (3, 3)
+    await _assert_old_keys_kept(hass, entry, keys)
 
 
 async def test_entity_ids_unchanged(hass):
     entry = await _setup_local(hass)
     await _assert_old_keys_kept(hass, entry, UPSTREAM_LOCAL_KEYS)
+
+
+async def test_local_entity_ids_survive_binary_sensor_migration(hass):
+    entry = _entry(BwtModel.PERLA_LOCAL_API, minor_version=2, **{CONF_CODE: "c"})
+    await _assert_migrated_from_pre_binary_sensor(
+        hass, entry, "BwtApi", _local_api(), UPSTREAM_LOCAL_KEYS
+    )
 
 
 async def test_smartdos_entity_ids_unchanged(hass):
@@ -324,8 +385,15 @@ async def test_smartdos_entity_ids_unchanged(hass):
     await _assert_old_keys_kept(hass, entry, UPSTREAM_SMARTDOS_KEYS)
 
 
+async def test_smartdos_entity_ids_survive_binary_sensor_migration(hass):
+    entry = _entry(BwtModel.SMART_DOS, minor_version=2)
+    await _assert_migrated_from_pre_binary_sensor(
+        hass, entry, "BwtSmartDosApi", _smartdos_api(), UPSTREAM_SMARTDOS_KEYS
+    )
+
+
 async def test_silk_entity_ids_preserved_by_migration(hass):
-    """An existing Silk install keeps every entity id through the 3.2 migration.
+    """An existing Silk install keeps every entity id through the 3.2 and 3.3 migrations.
 
     The raw silk_register_<n> keys of registers that became named sensors are
     re-keyed, but the entity ids users reference in automations must not change.
@@ -346,16 +414,19 @@ async def test_silk_entity_ids_preserved_by_migration(hass):
         await hass.async_block_till_done()
     assert entry.state is ConfigEntryState.LOADED
 
-    for key, entity_id in old_ids.items():
-        reg = registry.async_get(entity_id)
-        assert reg is not None, key
-        assert reg.config_entry_id == entry.entry_id, key
+    for key in old_ids:
         if key.startswith("silk_register_"):
             index = int(key.removeprefix("silk_register_"))
             # Registers that became named sensors are re-keyed, unknown ones are not.
             new_key = SILK_RENAMED_REGISTERS.get(index, key)
         else:
             new_key = key
+        # The slug is unchanged; the two flag registers moved to binary_sensor (#78).
+        domain = "binary_sensor" if new_key in MOVED_UNIQUE_KEYS else "sensor"
+        entity_id = f"{domain}.{DOMAIN}_{key}"
+        reg = registry.async_get(entity_id)
+        assert reg is not None, key
+        assert reg.config_entry_id == entry.entry_id, key
         assert reg.unique_id == f"{entry.entry_id}_{new_key}", key
         # An orphaned (not re-keyed) entity would be restored as unavailable.
         state = hass.states.get(entity_id)
