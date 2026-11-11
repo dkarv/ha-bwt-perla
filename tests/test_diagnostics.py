@@ -102,6 +102,7 @@ async def test_diagnostics_without_runtime_data(hass):
     entry.add_to_hass(hass)
     diag = await async_get_config_entry_diagnostics(hass, entry)
     assert diag["model"] == BwtModel.PERLA_LOCAL_API.name
+    assert "data" not in diag
     text = json_dumps(diag)
     assert "secret-code" not in text
     assert HOST not in text
