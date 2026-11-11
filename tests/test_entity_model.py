@@ -19,6 +19,7 @@ from homeassistant.components.sensor import SensorDeviceClass, SensorStateClass
 from homeassistant.config_entries import ConfigEntryState
 from homeassistant.const import CONF_CODE, CONF_HOST, EntityCategory
 from homeassistant.helpers import entity_registry as er
+from homeassistant.helpers import issue_registry as ir
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.bwt_perla.const import DOMAIN
@@ -342,7 +343,9 @@ async def _assert_old_keys_kept(hass, entry, old_keys):
         assert entity_id == f"{domain}.{DOMAIN}_{key}", key
 
 
-async def _assert_migrated_from_pre_binary_sensor(hass, entry, api_name, api, keys):
+async def _assert_migrated_from_pre_binary_sensor(
+    hass, entry, api_name, api, keys, customized_key
+):
     """Pre-register sensor.* entries at 3.2, run the migration and set up.
 
     Entity id slugs and unique ids must survive; only the on/off entities
@@ -359,12 +362,34 @@ async def _assert_migrated_from_pre_binary_sensor(hass, entry, api_name, api, ke
             suggested_object_id=f"{DOMAIN}_{key}",
         )
         assert entity.entity_id == _old_entity_id(key)
+    # A user customisation on one of the moved entities must be carried over.
+    assert customized_key in MOVED_UNIQUE_KEYS
+    registry.async_update_entity(
+        _old_entity_id(customized_key),
+        name="Custom name",
+        disabled_by=er.RegistryEntryDisabler.USER,
+    )
     with patch(f"custom_components.bwt_perla.{api_name}", return_value=api):
         await hass.config_entries.async_setup(entry.entry_id)
         await hass.async_block_till_done()
     assert entry.state is ConfigEntryState.LOADED
     assert (entry.version, entry.minor_version) == (3, 3)
     await _assert_old_keys_kept(hass, entry, keys)
+    # The moved entities really were re-registered: the old sensor entry is gone.
+    moved = [key for key in keys if key in MOVED_UNIQUE_KEYS]
+    assert customized_key in moved
+    for key in moved:
+        uid = f"{entry.entry_id}_{key}"
+        assert registry.async_get_entity_id("sensor", DOMAIN, uid) is None, key
+        new = registry.async_get(registry.async_get_entity_id("binary_sensor", DOMAIN, uid))
+        assert new.unique_id == uid, key
+    custom = registry.async_get(f"binary_sensor.{DOMAIN}_{customized_key}")
+    assert custom.name == "Custom name"
+    assert custom.disabled_by is er.RegistryEntryDisabler.USER
+    # The user is told that entity ids changed domain.
+    assert f"binary_sensors_moved_{entry.entry_id}" in {
+        issue.issue_id for issue in ir.async_get(hass).issues.values()
+    }
 
 
 async def test_entity_ids_unchanged(hass):
@@ -375,7 +400,7 @@ async def test_entity_ids_unchanged(hass):
 async def test_local_entity_ids_survive_binary_sensor_migration(hass):
     entry = _entry(BwtModel.PERLA_LOCAL_API, minor_version=2, **{CONF_CODE: "c"})
     await _assert_migrated_from_pre_binary_sensor(
-        hass, entry, "BwtApi", _local_api(), UPSTREAM_LOCAL_KEYS
+        hass, entry, "BwtApi", _local_api(), UPSTREAM_LOCAL_KEYS, "holiday_mode"
     )
 
 
@@ -388,7 +413,7 @@ async def test_smartdos_entity_ids_unchanged(hass):
 async def test_smartdos_entity_ids_survive_binary_sensor_migration(hass):
     entry = _entry(BwtModel.SMART_DOS, minor_version=2)
     await _assert_migrated_from_pre_binary_sensor(
-        hass, entry, "BwtSmartDosApi", _smartdos_api(), UPSTREAM_SMARTDOS_KEYS
+        hass, entry, "BwtSmartDosApi", _smartdos_api(), UPSTREAM_SMARTDOS_KEYS, "buzzer"
     )
 
 
@@ -424,6 +449,8 @@ async def test_silk_entity_ids_preserved_by_migration(hass):
         # The slug is unchanged; the two flag registers moved to binary_sensor (#78).
         domain = "binary_sensor" if new_key in MOVED_UNIQUE_KEYS else "sensor"
         entity_id = f"{domain}.{DOMAIN}_{key}"
+        if domain == "binary_sensor":
+            assert registry.async_get(f"sensor.{DOMAIN}_{key}") is None, key
         reg = registry.async_get(entity_id)
         assert reg is not None, key
         assert reg.config_entry_id == entry.entry_id, key
