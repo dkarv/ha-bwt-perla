@@ -75,3 +75,34 @@ async def test_diagnostics_silk_drops_unknown_status_fields(hass):
         "gitver": 3,
         "productCode": "SILK",
     }
+
+
+async def test_diagnostics_silk_data_shape_tripwire(hass):
+    """Tripwire for newly added attributes on the Silk data object.
+
+    Diagnostics export every attribute of the data object, so a new one (for
+    example from a future register sensor) fails here and must be reviewed for
+    sensitive content and redacted if needed. This does not guarantee anything
+    about what the real device puts into its registers.
+    """
+    entry = _entry(BwtModel.PERLA_SILK)
+    await _setup(hass, entry, "BwtSilkApi", _silk_api())
+    diag = await async_get_config_entry_diagnostics(hass, entry)
+    assert set(diag["data"]) == {"registers", "status"}
+    assert diag["data"]["registers"]
+    assert all(
+        isinstance(value, int) and not isinstance(value, bool)
+        for value in diag["data"]["registers"]
+    )
+
+
+async def test_diagnostics_without_runtime_data(hass):
+    """A config entry whose setup failed still yields redacted diagnostics."""
+    entry = _entry(BwtModel.PERLA_LOCAL_API, **{CONF_CODE: "secret-code"})
+    entry.add_to_hass(hass)
+    diag = await async_get_config_entry_diagnostics(hass, entry)
+    assert diag["model"] == BwtModel.PERLA_LOCAL_API.name
+    assert "data" not in diag
+    text = json_dumps(diag)
+    assert "secret-code" not in text
+    assert HOST not in text

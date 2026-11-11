@@ -59,9 +59,15 @@ async def async_get_config_entry_diagnostics(
     hass: HomeAssistant, entry: BwtConfigEntry
 ) -> dict[str, Any]:
     """Return diagnostics for a config entry."""
-    coordinator = entry.runtime_data
+    redacted_entry = async_redact_data(
+        entry.as_dict(), TO_REDACT | {"title", "unique_id"}
+    )
+    coordinator = getattr(entry, "runtime_data", None)
+    if coordinator is None:
+        # Setup failed or has not run: still return the entry for the report.
+        return {"entry": redacted_entry, "model": entry.data.get("model")}
     return {
-        "entry": async_redact_data(entry.as_dict(), TO_REDACT | {"title", "unique_id"}),
+        "entry": redacted_entry,
         "model": coordinator.model.name,
         "last_update_success": coordinator.last_update_success,
         "update_interval": str(coordinator.update_interval),
