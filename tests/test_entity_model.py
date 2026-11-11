@@ -281,6 +281,28 @@ UPSTREAM_SILK_KEYS = (
 )
 
 
+# Raw Silk register index -> named sensor key it was re-keyed to by the 3.2 migration.
+SILK_RENAMED_REGISTERS = {
+    0: "salt_type",
+    5: "device_ranking",
+    6: "model_code",
+    11: "duplex_setting",
+    12: "base_model_number",
+    13: "hardness_units",
+    20: "turbine_pulses_per_liter",
+    21: "recharge_interval",
+    22: "capacity_scale_factor",
+    29: "salt_alarm_mode",
+    32: "salt_per_regeneration",
+    33: "service_reminder_mode",
+    35: "recharge_algorithm",
+    38: "day_of_week",
+    39: "allow_salt_type_change",
+    40: "allow_regen_time_change",
+    41: "resin_capacity",
+}
+
+
 async def _assert_old_keys_kept(hass, entry, old_keys):
     """Every previously registered entity keeps its unique id and entity id."""
     registry = er.async_get(hass)
@@ -328,11 +350,17 @@ async def test_silk_entity_ids_preserved_by_migration(hass):
         reg = registry.async_get(entity_id)
         assert reg is not None, key
         assert reg.config_entry_id == entry.entry_id, key
-        assert reg.entity_id == f"sensor.{DOMAIN}_{key}"
-        if not key.startswith("silk_register_"):
-            assert reg.unique_id == f"{entry.entry_id}_{key}", key
+        if key.startswith("silk_register_"):
+            index = int(key.removeprefix("silk_register_"))
+            # Registers that became named sensors are re-keyed, unknown ones are not.
+            new_key = SILK_RENAMED_REGISTERS.get(index, key)
+        else:
+            new_key = key
+        assert reg.unique_id == f"{entry.entry_id}_{new_key}", key
         # An orphaned (not re-keyed) entity would be restored as unavailable.
-        assert hass.states.get(entity_id).state != "unavailable", key
+        state = hass.states.get(entity_id)
+        assert state is not None, key
+        assert state.state != "unavailable", key
 
 
 async def test_smartdos_categories_and_rssi(hass):
