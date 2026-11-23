@@ -179,7 +179,11 @@ async def test_migration_keeps_hidden_area_options_and_device(hass):
     device = dr.async_get(hass).async_get_or_create(
         config_entry_id=entry.entry_id, identifiers={(DOMAIN, "dev")}
     )
-    old = _old_sensor(registry, entry, "buzzer", device_id=device.id)
+    # HA only allows an own area on entities that have a name of their own; real
+    # registry entries carry the translated name as original_name.
+    old = _old_sensor(
+        registry, entry, "buzzer", device_id=device.id, original_name="Buzzer"
+    )
     registry.async_update_entity(
         old.entity_id,
         hidden_by=er.RegistryEntryHider.USER,

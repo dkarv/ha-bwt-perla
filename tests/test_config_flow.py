@@ -37,6 +37,13 @@ def _patch_local_api(api):
     return patch("custom_components.bwt_perla.config_flow.BwtApi", return_value=api)
 
 
+def _patch_setup_entry():
+    """Skip real entry setup after the flow creates an entry (it would open sockets)."""
+    return patch(
+        "custom_components.bwt_perla.async_setup_entry", AsyncMock(return_value=True)
+    )
+
+
 def _entry(**kwargs):
     data = {
         CONF_HOST: HOST,
@@ -54,7 +61,11 @@ async def test_user_flow_local_api(hass):
     assert result["type"] is FlowResultType.FORM
     assert result["step_id"] == "user"
 
-    with _patch_model(BwtModel.PERLA_LOCAL_API), _patch_local_api(_mock_api()):
+    with (
+        _patch_model(BwtModel.PERLA_LOCAL_API),
+        _patch_local_api(_mock_api()),
+        _patch_setup_entry() as mock_setup_entry,
+    ):
         result = await hass.config_entries.flow.async_configure(
             result["flow_id"], {CONF_HOST: HOST}
         )
@@ -64,6 +75,9 @@ async def test_user_flow_local_api(hass):
         result = await hass.config_entries.flow.async_configure(
             result["flow_id"], {CONF_CODE: "1234"}
         )
+        await hass.async_block_till_done()
+
+    assert len(mock_setup_entry.mock_calls) == 1
 
     assert result["type"] is FlowResultType.CREATE_ENTRY
     assert result["title"] == "BWT Perla One"
@@ -85,10 +99,14 @@ async def test_user_flow_silk(hass):
             "custom_components.bwt_perla.config_flow.BwtSilkApi",
             return_value=_mock_api(),
         ),
+        _patch_setup_entry() as mock_setup_entry,
     ):
         result = await hass.config_entries.flow.async_configure(
             result["flow_id"], {CONF_HOST: HOST}
         )
+        await hass.async_block_till_done()
+
+    assert len(mock_setup_entry.mock_calls) == 1
 
     assert result["type"] is FlowResultType.CREATE_ENTRY
     assert result["title"] == "BWT Perla Silk"

@@ -524,7 +524,9 @@ async def test_smartdos_device_model_has_no_perla_prefix(hass):
 
     entry = _entry(BwtModel.SMART_DOS)
     await _setup(hass, entry, "BwtSmartDosApi", _smartdos_api())
-    device = dr.async_get(hass).async_get_device(identifiers={(DOMAIN, entry.entry_id)})
+    device = dr.async_get(hass).async_get_device_by_identifier(
+        (DOMAIN, entry.entry_id), entry.entry_id
+    )
     assert device.model == "SmartDos"
 
 
