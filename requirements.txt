@@ -1,5 +1,8 @@
-homeassistant
+homeassistant==2026.10.4
+mock==5.2.0
+pytest==9.0.3
+flask==3.1.3
+
+# Runtime deps, versions come from custom_components/bwt_perla/manifest.json
+# (installed from there before this file in CI).
 bwt_api
-mock
-pytest
-flask

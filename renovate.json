@@ -1,0 +1,25 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": ["config:recommended"],
+  "prHourlyLimit": 0,
+  "prConcurrentLimit": 20,
+  "customManagers": [
+    {
+      "description": "Python requirements in the Home Assistant integration manifest",
+      "customType": "regex",
+      "managerFilePatterns": ["/^custom_components/[^/]+/manifest\\.json$/"],
+      "matchStrings": ["\"(?<depName>[A-Za-z0-9_.-]+)==(?<currentValue>[^\"]+)\""],
+      "datasourceTemplate": "pypi"
+    }
+  ],
+  "packageRules": [
+    {
+      "groupName": "github-actions",
+      "matchManagers": ["github-actions"]
+    },
+    {
+      "groupName": "python-dependencies",
+      "matchDatasources": ["pypi"]
+    }
+  ]
+}
