@@ -1,9 +1,5 @@
 # Custom HA integration for the BWT Perla and Smart Dos
 
-_BWT Perla integration repository for [HACS](https://github.com/custom-components/hacs)._
-<!--
-[![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=dkarv&repository=ha-bwt-perla)
--->
 ### Requirements and Compatibility
 
 For the setup a local network connection and the IP or hostname is needed. Supported devices:
@@ -22,7 +18,10 @@ It might work with other device types that offer compatible local apis. Please o
 
 ### Installation
 
-* Search and install BWT Perla in HACS
+* Install the integration via the **Home Assistant Marketplace** (Home Assistant 2026.11 or newer):
+
+  [![Open your Home Assistant instance and open this repository in the Marketplace.](https://my.home-assistant.io/badges/marketplace_repository.svg)](https://my.home-assistant.io/redirect/marketplace_repository/?owner=dkarv&repository=ha-bwt-perla&category=integration)
+
 * Setup integration
 * Enter host / ip address
 * For *Perla One/Duplex* enter the "Login-Code" in the second step
